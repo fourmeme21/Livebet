@@ -2,16 +2,16 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useEffect, useState } from 'react'
 
 interface UndoRingProps {
-  isVisible: boolean
-  onUndo: () => void
-  duration?: number // milisaniye
+  isActive: boolean
+  onExpire: () => void
+  duration?: number
 }
 
-export function UndoRing({ isVisible, onUndo, duration = 2000 }: UndoRingProps) {
+export function UndoRing({ isActive, onExpire, duration = 2000 }: UndoRingProps) {
   const [progress, setProgress] = useState(0)
 
   useEffect(() => {
-    if (!isVisible) {
+    if (!isActive) {
       setProgress(0)
       return
     }
@@ -21,13 +21,16 @@ export function UndoRing({ isVisible, onUndo, duration = 2000 }: UndoRingProps) 
       const elapsed = Date.now() - start
       const p = Math.min(1, elapsed / duration)
       setProgress(p)
-      if (p >= 1) clearInterval(interval)
+      if (p >= 1) {
+        clearInterval(interval)
+        onExpire()
+      }
     }, 16)
 
     return () => clearInterval(interval)
-  }, [isVisible, duration])
+  }, [isActive, duration, onExpire])
 
-  if (!isVisible) return null
+  if (!isActive) return null
 
   const circumference = 2 * Math.PI * 28 // yarıçap 28
   const dashoffset = circumference * (1 - progress)
@@ -64,12 +67,7 @@ export function UndoRing({ isVisible, onUndo, duration = 2000 }: UndoRingProps) 
             transition={{ duration: 0 }}
           />
         </svg>
-        <button
-          onClick={onUndo}
-          className="absolute inset-0 flex items-center justify-center rounded-full bg-background text-sm font-semibold text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-        >
-          Geri Al
-        </button>
+        {/* Geri al butonu yok – sadece görsel halka */}
       </div>
     </motion.div>
   )

@@ -2,7 +2,6 @@
 @import 'tw-animate-css';
 
 :root {
-  /* Glassmorphism 2.0 - Dark theme with cyan/teal accents */
   --background: oklch(0.12 0 0);
   --foreground: oklch(0.95 0.01 246.9);
   --card: oklch(0.15 0.02 246.9 / 0.4);
@@ -36,8 +35,6 @@
   --sidebar-accent-foreground: oklch(0.98 0 0);
   --sidebar-border: oklch(0.25 0.03 246.9);
   --sidebar-ring: oklch(0.55 0.18 182);
-
-  /* Betting-specific tokens */
   --odds-positive: oklch(0.65 0.15 142);
   --odds-negative: oklch(0.55 0.15 22);
   --odds-neutral: oklch(0.5 0.1 246.9);
@@ -78,7 +75,6 @@
   --sidebar-accent-foreground: oklch(0.98 0 0);
   --sidebar-border: oklch(0.25 0.03 246.9);
   --sidebar-ring: oklch(0.55 0.18 182);
-
   --odds-positive: oklch(0.65 0.15 142);
   --odds-negative: oklch(0.55 0.15 22);
   --odds-neutral: oklch(0.5 0.1 246.9);
@@ -86,22 +82,31 @@
   --undo-ring: oklch(0.55 0.18 182);
 }
 
+/* FIX: @apply border-border yerine doğrudan CSS — Tailwind v4'te CSS değişkenleri @apply ile kullanılamaz */
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    border-color: var(--border);
+    outline-color: color-mix(in oklch, var(--ring) 50%, transparent);
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--background);
+    color: var(--foreground);
   }
 }
 
 @layer components {
   .glass-card {
-    @apply backdrop-blur-xl bg-card border border-border shadow-lg;
+    backdrop-filter: blur(24px);
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
   }
 
   .glass-card-thin {
-    @apply backdrop-blur-xl bg-card/80 border border-border/50 shadow-md;
+    backdrop-filter: blur(24px);
+    background-color: color-mix(in oklch, var(--card) 80%, transparent);
+    border: 1px solid color-mix(in oklch, var(--border) 50%, transparent);
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
   }
 
   @keyframes breathe {
@@ -114,9 +119,9 @@
   }
 
   @keyframes glow-pulse {
-    0% { box-shadow: 0 0 0 0 rgba(var(--accent), 0.7); }
-    50% { box-shadow: 0 0 20px 10px rgba(var(--accent), 0.3); }
-    100% { box-shadow: 0 0 0 0 rgba(var(--accent), 0); }
+    0% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--accent) 70%, transparent); }
+    50% { box-shadow: 0 0 20px 10px color-mix(in oklch, var(--accent) 30%, transparent); }
+    100% { box-shadow: 0 0 0 0 transparent; }
   }
 
   .odds-glow {

@@ -1,0 +1,80 @@
+'use client'
+
+import { useEffect } from 'react'
+
+export default function GlobalError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string }
+  reset: () => void
+}) {
+  useEffect(() => {
+    console.error('[Livebet GlobalError]', error)
+  }, [error])
+
+  return (
+    <html lang="en">
+      <body style={{
+        minHeight: '100vh',
+        backgroundColor: '#0a0a0a',
+        color: '#fff',
+        padding: '24px',
+        fontFamily: 'monospace',
+        wordBreak: 'break-word',
+        margin: 0,
+      }}>
+        <h1 style={{ color: '#f87171', fontSize: '18px', marginBottom: '16px' }}>
+          🔴 Global Error
+        </h1>
+
+        <div style={{
+          backgroundColor: '#1a0000',
+          border: '1px solid #7f1d1d',
+          borderRadius: '8px',
+          padding: '16px',
+          marginBottom: '16px',
+        }}>
+          <p style={{ color: '#fca5a5', fontSize: '14px', fontWeight: 'bold', marginBottom: '8px' }}>
+            {error.name}: {error.message}
+          </p>
+          {error.digest && (
+            <p style={{ color: '#6b7280', fontSize: '12px' }}>
+              Digest: {error.digest}
+            </p>
+          )}
+        </div>
+
+        {error.stack && (
+          <div style={{
+            backgroundColor: '#111',
+            border: '1px solid #333',
+            borderRadius: '8px',
+            padding: '16px',
+            marginBottom: '16px',
+            overflowX: 'auto',
+          }}>
+            <p style={{ color: '#9ca3af', fontSize: '11px', whiteSpace: 'pre-wrap' }}>
+              {error.stack}
+            </p>
+          </div>
+        )}
+
+        <button
+          onClick={reset}
+          style={{
+            backgroundColor: '#1d4ed8',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '8px',
+            padding: '12px 24px',
+            fontSize: '14px',
+            cursor: 'pointer',
+          }}
+        >
+          Tekrar Dene
+        </button>
+      </body>
+    </html>
+  )
+}

@@ -2,10 +2,9 @@
 
 import { useBettingStore } from '@/lib/betting-store';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Wallet, TrendingUp } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
-/* Bakiye değişince animasyonlu sayı geçişi */
 function AnimatedBalance({ value }: { value: number }) {
   const [display, setDisplay] = useState(value);
   const [flash, setFlash] = useState<'up' | 'down' | null>(null);
@@ -20,105 +19,104 @@ function AnimatedBalance({ value }: { value: number }) {
     return () => clearTimeout(t);
   }, [value]);
 
-  const flashColor =
-    flash === 'up'
-      ? 'var(--odds-positive)'
-      : flash === 'down'
-      ? 'var(--odds-negative)'
-      : 'var(--foreground)';
+  const color =
+    flash === 'up' ? 'var(--odds-positive)' :
+    flash === 'down' ? 'var(--odds-negative)' :
+    'var(--accent)';
 
   return (
     <motion.span
-      className="font-mono font-bold text-sm tabular-nums transition-colors"
-      animate={{ color: flashColor }}
+      className="font-mono font-bold text-sm tabular-nums"
+      animate={{ color }}
       transition={{ duration: 0.3 }}
     >
-      {display.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-      <span className="text-[10px] font-normal ml-0.5" style={{ color: 'var(--muted-foreground)' }}>
-        ₺
-      </span>
+      {display.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
     </motion.span>
   );
 }
 
-export function Header() {
-  const { balance, totalStaked } = useBettingStore();
+interface HeaderProps {
+  couponCount: number;
+  onCouponOpen: () => void;
+}
+
+export function Header({ couponCount, onCouponOpen }: HeaderProps) {
+  const { balance } = useBettingStore();
 
   return (
     <header
-      className="glass-card-thin sticky top-0 z-40 px-5 py-3"
+      className="sticky top-0 z-40 flex items-center gap-2 px-3 py-2"
       style={{
-        borderRadius: 0,
-        borderTop: 'none',
-        borderLeft: 'none',
-        borderRight: 'none',
-        borderBottom: '1px solid var(--border-subtle)',
+        backgroundColor: 'var(--brand-red)',
+        borderBottom: '1px solid var(--brand-red-dark)',
       }}
     >
-      <div className="flex items-center justify-between max-w-screen-xl mx-auto">
+      {/* ─── Sol: Arama butonu ─── */}
+      <button
+        className="flex items-center gap-2 rounded px-3 py-2 text-sm shrink-0"
+        style={{
+          backgroundColor: 'var(--brand-red-dark)',
+          color: 'oklch(0.85 0 0)',
+          minWidth: '80px',
+        }}
+      >
+        <Search className="w-4 h-4 shrink-0" />
+        <span className="font-medium">Ara</span>
+      </button>
 
-        {/* ─── Logo ─── */}
-        <div className="flex items-center gap-2.5">
-          {/* Altın nokta aksanı */}
+      {/* ─── Orta: Logo ─── */}
+      <div className="flex flex-1 items-center justify-center">
+        <span className="text-xl font-black tracking-tight text-white">
+          LIVE<span style={{ color: 'var(--accent)' }}>BET</span>
+        </span>
+      </div>
+
+      {/* ─── Sağ: Kupon sayacı — NORMA stili ─── */}
+      <motion.button
+        onClick={onCouponOpen}
+        className="flex shrink-0 flex-col items-center gap-0.5"
+        whileTap={{ scale: 0.9 }}
+      >
+        <div className="relative">
+          {/* 3 çizgi ikon */}
           <div
-            className="w-2 h-2 rounded-full"
-            style={{ backgroundColor: 'var(--accent)' }}
-          />
-          <h1
-            className="text-lg font-bold tracking-tight"
-            style={{ color: 'var(--foreground)', letterSpacing: '-0.02em' }}
+            className="flex w-10 h-8 flex-col items-center justify-center gap-1 rounded"
+            style={{ backgroundColor: 'var(--brand-red-dark)' }}
           >
-            Live
-            <span style={{ color: 'var(--accent)' }}>bet</span>
-          </h1>
-        </div>
+            {[0, 1, 2].map(i => (
+              <div
+                key={i}
+                className="rounded-full bg-white"
+                style={{ width: i === 1 ? 18 : 14, height: 2 }}
+              />
+            ))}
+          </div>
 
-        {/* ─── Sağ: Bakiye + stake ─── */}
-        <div className="flex items-center gap-2">
-
-          {/* Bakiye */}
-          <motion.div
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg"
-            style={{ backgroundColor: 'var(--accent-muted)' }}
-            whileHover={{ scale: 1.02 }}
-            transition={{ type: 'spring', stiffness: 400 }}
-          >
-            <Wallet
-              className="w-3.5 h-3.5 shrink-0"
-              style={{ color: 'var(--accent)' }}
-            />
-            <AnimatedBalance value={balance} />
-          </motion.div>
-
-          {/* Aktif bahis toplamı — sadece sıfır değilse göster */}
+          {/* Badge */}
           <AnimatePresence>
-            {totalStaked > 0 && (
-              <motion.div
-                initial={{ opacity: 0, x: 8 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 8 }}
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg"
-                style={{ backgroundColor: 'var(--muted)' }}
+            {couponCount > 0 && (
+              <motion.span
+                key="badge"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0 }}
+                className="absolute -bottom-1 -right-1 flex min-w-[18px] h-[18px] items-center justify-center rounded px-0.5 text-[10px] font-bold"
+                style={{
+                  backgroundColor: 'var(--accent)',
+                  color: 'var(--accent-foreground)',
+                }}
               >
-                <TrendingUp
-                  className="w-3.5 h-3.5"
-                  style={{ color: 'var(--odds-positive)' }}
-                />
-                <span
-                  className="font-mono text-xs tabular-nums"
-                  style={{ color: 'var(--muted-foreground)' }}
-                >
-                  {totalStaked.toLocaleString('tr-TR', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                  <span className="ml-0.5 text-[9px]">₺</span>
-                </span>
-              </motion.div>
+                {couponCount}
+              </motion.span>
             )}
           </AnimatePresence>
         </div>
-      </div>
+
+        <span className="text-[9px] leading-none text-white/70">
+          Kuponunuz
+        </span>
+      </motion.button>
     </header>
   );
-}
+      }
+          

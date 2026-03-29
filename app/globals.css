@@ -2,138 +2,264 @@
 @import 'tw-animate-css';
 
 :root {
-  --background: oklch(0.12 0 0);
-  --foreground: oklch(0.95 0.01 246.9);
-  --card: oklch(0.15 0.02 246.9 / 0.4);
-  --card-foreground: oklch(0.95 0.01 246.9);
-  --popover: oklch(0.15 0.02 246.9 / 0.4);
-  --popover-foreground: oklch(0.95 0.01 246.9);
-  --primary: oklch(0.5 0.15 231);
+  /* ─── Zemin: Derin koyu slate — saf siyah değil, derinlikli ─── */
+  --background: oklch(0.10 0.008 264);        /* #0C0D12 — koyu gece mavisi */
+  --foreground: oklch(0.93 0.008 264);        /* Kırık beyaz — göz yormaz */
+
+  /* ─── Kart yüzeyleri ─── */
+  --card: oklch(0.14 0.010 264 / 0.60);       /* Hafif mavi-gri, yarı şeffaf */
+  --card-foreground: oklch(0.93 0.008 264);
+  --popover: oklch(0.16 0.012 264 / 0.90);
+  --popover-foreground: oklch(0.93 0.008 264);
+
+  /* ─── Aksan: Altın/Amber — "premium" hissi veren tek renk ─── */
+  --accent: oklch(0.78 0.14 78);              /* Yumuşak altın */
+  --accent-foreground: oklch(0.12 0.008 264); /* Aksan üstü koyu metin */
+  --accent-muted: oklch(0.78 0.14 78 / 0.15); /* Aksan arka plan için */
+
+  /* ─── Primary: Slate blue — secondary CTA ─── */
+  --primary: oklch(0.56 0.12 248);
   --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.45 0.12 182);
-  --secondary-foreground: oklch(0.98 0 0);
-  --muted: oklch(0.35 0.02 246.9);
-  --muted-foreground: oklch(0.65 0.03 246.9);
-  --accent: oklch(0.55 0.18 182);
-  --accent-foreground: oklch(0.98 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.25 0.03 246.9);
-  --input: oklch(0.18 0.03 246.9 / 0.5);
-  --ring: oklch(0.55 0.18 182);
-  --chart-1: oklch(0.55 0.18 182);
-  --chart-2: oklch(0.5 0.15 231);
-  --chart-3: oklch(0.48 0.14 210);
-  --chart-4: oklch(0.52 0.16 200);
-  --chart-5: oklch(0.58 0.17 190);
-  --radius: 0.5rem;
-  --sidebar: oklch(0.14 0.02 246.9 / 0.3);
-  --sidebar-foreground: oklch(0.95 0.01 246.9);
-  --sidebar-primary: oklch(0.55 0.18 182);
-  --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.5 0.15 231);
+  --secondary: oklch(0.20 0.012 264);
+  --secondary-foreground: oklch(0.75 0.008 264);
+
+  /* ─── Muted tonlar ─── */
+  --muted: oklch(0.20 0.010 264);
+  --muted-foreground: oklch(0.55 0.010 264);
+
+  /* ─── Sınır & input ─── */
+  --border: oklch(0.22 0.012 264 / 0.70);
+  --border-subtle: oklch(0.18 0.008 264 / 0.50);
+  --input: oklch(0.17 0.012 264 / 0.60);
+  --ring: oklch(0.78 0.14 78 / 0.50);
+
+  /* ─── Radius ─── */
+  --radius: 0.75rem;
+
+  /* ─── Bahis özel tokenlar ─── */
+  --odds-positive: oklch(0.68 0.16 145);      /* Yeşil: oran artışı, kazanç */
+  --odds-negative: oklch(0.58 0.18 22);       /* Kırmızı: oran düşüşü, kayıp */
+  --odds-neutral: oklch(0.55 0.08 264);
+  --live-pulse: oklch(0.65 0.20 25);          /* Canlı turuncu */
+  --undo-ring: oklch(0.78 0.14 78);           /* Altın undo halkası */
+
+  /* ─── Sidebar ─── */
+  --sidebar: oklch(0.12 0.010 264 / 0.40);
+  --sidebar-foreground: oklch(0.93 0.008 264);
+  --sidebar-primary: oklch(0.78 0.14 78);
+  --sidebar-primary-foreground: oklch(0.12 0.008 264);
+  --sidebar-accent: oklch(0.56 0.12 248);
   --sidebar-accent-foreground: oklch(0.98 0 0);
-  --sidebar-border: oklch(0.25 0.03 246.9);
-  --sidebar-ring: oklch(0.55 0.18 182);
-  --odds-positive: oklch(0.65 0.15 142);
-  --odds-negative: oklch(0.55 0.15 22);
-  --odds-neutral: oklch(0.5 0.1 246.9);
-  --live-pulse: oklch(0.6 0.2 30);
-  --undo-ring: oklch(0.55 0.18 182);
+  --sidebar-border: oklch(0.22 0.012 264 / 0.50);
+  --sidebar-ring: oklch(0.78 0.14 78 / 0.50);
+
+  /* ─── Chart ─── */
+  --chart-1: oklch(0.78 0.14 78);
+  --chart-2: oklch(0.68 0.16 145);
+  --chart-3: oklch(0.56 0.12 248);
+  --chart-4: oklch(0.65 0.20 25);
+  --chart-5: oklch(0.58 0.18 22);
+
+  /* ─── Destructive ─── */
+  --destructive: oklch(0.58 0.20 22);
+  --destructive-foreground: oklch(0.98 0 0);
 }
 
 .dark {
-  --background: oklch(0.12 0 0);
-  --foreground: oklch(0.95 0.01 246.9);
-  --card: oklch(0.15 0.02 246.9 / 0.4);
-  --card-foreground: oklch(0.95 0.01 246.9);
-  --popover: oklch(0.15 0.02 246.9 / 0.4);
-  --popover-foreground: oklch(0.95 0.01 246.9);
-  --primary: oklch(0.5 0.15 231);
+  --background: oklch(0.10 0.008 264);
+  --foreground: oklch(0.93 0.008 264);
+  --card: oklch(0.14 0.010 264 / 0.60);
+  --card-foreground: oklch(0.93 0.008 264);
+  --popover: oklch(0.16 0.012 264 / 0.90);
+  --popover-foreground: oklch(0.93 0.008 264);
+  --accent: oklch(0.78 0.14 78);
+  --accent-foreground: oklch(0.12 0.008 264);
+  --accent-muted: oklch(0.78 0.14 78 / 0.15);
+  --primary: oklch(0.56 0.12 248);
   --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.45 0.12 182);
-  --secondary-foreground: oklch(0.98 0 0);
-  --muted: oklch(0.35 0.02 246.9);
-  --muted-foreground: oklch(0.65 0.03 246.9);
-  --accent: oklch(0.55 0.18 182);
-  --accent-foreground: oklch(0.98 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.25 0.03 246.9);
-  --input: oklch(0.18 0.03 246.9 / 0.5);
-  --ring: oklch(0.55 0.18 182);
-  --chart-1: oklch(0.55 0.18 182);
-  --chart-2: oklch(0.5 0.15 231);
-  --chart-3: oklch(0.48 0.14 210);
-  --chart-4: oklch(0.52 0.16 200);
-  --chart-5: oklch(0.58 0.17 190);
-  --sidebar: oklch(0.14 0.02 246.9 / 0.3);
-  --sidebar-foreground: oklch(0.95 0.01 246.9);
-  --sidebar-primary: oklch(0.55 0.18 182);
-  --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.5 0.15 231);
+  --secondary: oklch(0.20 0.012 264);
+  --secondary-foreground: oklch(0.75 0.008 264);
+  --muted: oklch(0.20 0.010 264);
+  --muted-foreground: oklch(0.55 0.010 264);
+  --border: oklch(0.22 0.012 264 / 0.70);
+  --border-subtle: oklch(0.18 0.008 264 / 0.50);
+  --input: oklch(0.17 0.012 264 / 0.60);
+  --ring: oklch(0.78 0.14 78 / 0.50);
+  --odds-positive: oklch(0.68 0.16 145);
+  --odds-negative: oklch(0.58 0.18 22);
+  --odds-neutral: oklch(0.55 0.08 264);
+  --live-pulse: oklch(0.65 0.20 25);
+  --undo-ring: oklch(0.78 0.14 78);
+  --sidebar: oklch(0.12 0.010 264 / 0.40);
+  --sidebar-foreground: oklch(0.93 0.008 264);
+  --sidebar-primary: oklch(0.78 0.14 78);
+  --sidebar-primary-foreground: oklch(0.12 0.008 264);
+  --sidebar-accent: oklch(0.56 0.12 248);
   --sidebar-accent-foreground: oklch(0.98 0 0);
-  --sidebar-border: oklch(0.25 0.03 246.9);
-  --sidebar-ring: oklch(0.55 0.18 182);
-  --odds-positive: oklch(0.65 0.15 142);
-  --odds-negative: oklch(0.55 0.15 22);
-  --odds-neutral: oklch(0.5 0.1 246.9);
-  --live-pulse: oklch(0.6 0.2 30);
-  --undo-ring: oklch(0.55 0.18 182);
+  --sidebar-border: oklch(0.22 0.012 264 / 0.50);
+  --sidebar-ring: oklch(0.78 0.14 78 / 0.50);
+  --chart-1: oklch(0.78 0.14 78);
+  --chart-2: oklch(0.68 0.16 145);
+  --chart-3: oklch(0.56 0.12 248);
+  --chart-4: oklch(0.65 0.20 25);
+  --chart-5: oklch(0.58 0.18 22);
+  --destructive: oklch(0.58 0.20 22);
+  --destructive-foreground: oklch(0.98 0 0);
 }
 
-/* FIX: @apply border-border yerine doğrudan CSS — Tailwind v4'te CSS değişkenleri @apply ile kullanılamaz */
+/* ─── Base ──────────────────────────────────────────────────────── */
 @layer base {
   * {
     border-color: var(--border);
     outline-color: color-mix(in oklch, var(--ring) 50%, transparent);
   }
+
   body {
     background-color: var(--background);
     color: var(--foreground);
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    /* Subtle arka plan dokusu — tamamen düz değil */
+    background-image:
+      radial-gradient(
+        ellipse 80% 50% at 50% -10%,
+        oklch(0.20 0.04 264 / 0.30),
+        transparent
+      );
+    background-attachment: fixed;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 2px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--muted-foreground);
   }
 }
 
+/* ─── Components ─────────────────────────────────────────────────── */
 @layer components {
+
+  /* Glass kart — ana yüzey */
   .glass-card {
-    backdrop-filter: blur(24px);
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
     background-color: var(--card);
     border: 1px solid var(--border);
-    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+    border-radius: var(--radius);
+    box-shadow:
+      0 1px 0 0 oklch(1 0 0 / 0.04) inset,   /* üst kenar parlaması */
+      0 8px 32px -8px oklch(0 0 0 / 0.40);
   }
 
+  /* Glass kart — ince/ikincil yüzey */
   .glass-card-thin {
-    backdrop-filter: blur(24px);
-    background-color: color-mix(in oklch, var(--card) 80%, transparent);
-    border: 1px solid color-mix(in oklch, var(--border) 50%, transparent);
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    background-color: oklch(from var(--card) l c h / 0.50);
+    border: 1px solid var(--border-subtle);
+    border-radius: calc(var(--radius) - 2px);
+    box-shadow: 0 2px 8px -2px oklch(0 0 0 / 0.25);
   }
+
+  /* Aksan çizgi — section separator */
+  .accent-divider {
+    height: 1px;
+    background: linear-gradient(
+      to right,
+      transparent,
+      oklch(0.78 0.14 78 / 0.40),
+      transparent
+    );
+  }
+
+  /* Aksan rozet — LIVE badge gibi etiketler */
+  .luxury-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* Oran butonu temel stili */
+  .odds-btn {
+    position: relative;
+    overflow: hidden;
+    transition: background-color 150ms ease, border-color 150ms ease, transform 100ms ease;
+  }
+
+  .odds-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      oklch(1 0 0 / 0.03) 0%,
+      transparent 60%
+    );
+    pointer-events: none;
+  }
+
+  /* ─── Animasyonlar ────────────────────────────── */
 
   @keyframes breathe {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.55; transform: scale(0.85); }
   }
-
   .live-pulse {
-    animation: breathe 2s ease-in-out infinite;
+    animation: breathe 1.8s ease-in-out infinite;
   }
 
   @keyframes glow-pulse {
-    0% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--accent) 70%, transparent); }
-    50% { box-shadow: 0 0 20px 10px color-mix(in oklch, var(--accent) 30%, transparent); }
+    0%   { box-shadow: 0 0 0 0 oklch(0.78 0.14 78 / 0.50); }
+    40%  { box-shadow: 0 0 18px 6px oklch(0.78 0.14 78 / 0.25); }
     100% { box-shadow: 0 0 0 0 transparent; }
   }
-
   .odds-glow {
-    animation: glow-pulse 0.6s ease-out;
+    animation: glow-pulse 0.55s ease-out;
+    border-color: oklch(0.78 0.14 78 / 0.70) !important;
   }
 
   @keyframes undo-ring-animate {
-    0% { stroke-dashoffset: 0; opacity: 1; }
+    0%   { stroke-dashoffset: 0; opacity: 1; }
     100% { stroke-dashoffset: 150; opacity: 0; }
   }
-
   .undo-ring {
     animation: undo-ring-animate 2s ease-out forwards;
+  }
+
+  /* Yukarı kayma — kart girişi */
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .animate-slide-up {
+    animation: slide-up 0.25s ease-out both;
+  }
+
+  /* Shimmer — skeleton loading */
+  @keyframes shimmer {
+    from { background-position: -200% center; }
+    to   { background-position: 200% center; }
+  }
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      var(--muted) 25%,
+      oklch(0.25 0.010 264) 50%,
+      var(--muted) 75%
+    );
+    background-size: 200% auto;
+    animation: shimmer 1.5s linear infinite;
+    border-radius: calc(var(--radius) - 2px);
   }
 }

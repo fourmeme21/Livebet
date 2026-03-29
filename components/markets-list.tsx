@@ -3,20 +3,7 @@
 import { Market, useBettingStore, BetSlipItem } from '@/lib/betting-store';
 import { useMemo, useState } from 'react';
 import { MarketCard } from './market-card';
-import { motion } from 'framer-motion';
-
-const TIME_FILTERS = [
-  { id: 'all', label: 'Tumu' }, { id: '30m', label: '30dk' },
-  { id: '1h',  label: '1s'  }, { id: '3h',  label: '3s'   },
-  { id: '6h',  label: '6s'  }, { id: '12h', label: '12s'  },
-  { id: '24h', label: '24s' },
-];
-
-const DAY_FILTERS = [
-  { id: 'bugun', label: 'Bugun' },
-  { id: 'pzts',  label: 'Pzts'  },
-  { id: 'tumu',  label: 'Tumu'  },
-];
+import { MatchDetailModal } from './match-detail-modal';
 
 const FOOTBALL_LEAGUES = new Set([
   'UEFA Champions League', 'Premier League', 'La Liga',
@@ -56,135 +43,121 @@ interface MarketsListProps {
 
 export function MarketsList({ markets, onBetSelected, sport = 'futbol' }: MarketsListProps) {
   const { favorites, toggleFavorite } = useBettingStore();
-  const [search, setSearch]         = useState('');
-  const [timeFilter, setTimeFilter] = useState('all');
-  const [dayFilter, setDayFilter]   = useState('bugun');
+  const [search, setSearch] = useState('');
+  const [selectedMarket, setSelectedMarket] = useState<Market | null>(null);
 
   const filtered = useMemo(() => markets.filter(m => {
     if (sport === 'futbol'    && !FOOTBALL_LEAGUES.has(m.name))   return false;
     if (sport === 'basketbol' && !BASKETBALL_LEAGUES.has(m.name)) return false;
     if (search) {
       const q = search.toLowerCase();
-      if (!m.name.toLowerCase().includes(q) &&
-          !m.homeTeam.toLowerCase().includes(q) &&
-          !m.awayTeam.toLowerCase().includes(q)) return false;
+      if (
+        !m.name.toLowerCase().includes(q) &&
+        !m.homeTeam.toLowerCase().includes(q) &&
+        !m.awayTeam.toLowerCase().includes(q)
+      ) return false;
     }
     return true;
-  }), [markets, search, timeFilter, sport]);
+  }), [markets, search, sport]);
 
   const groups = useMemo(() => groupByLeague(filtered), [filtered]);
 
   return (
-    <div className="flex h-full w-full flex-col">
+    <>
+      <div className="flex h-full w-full flex-col">
 
-      {/* Gun filtresi */}
-      <div className="flex gap-2 px-3 py-2 shrink-0 border-b border-border">
-        {DAY_FILTERS.map(df => {
-          const active = dayFilter === df.id;
-          return (
-            <motion.button key={df.id} onClick={() => setDayFilter(df.id)} whileTap={{ scale: 0.94 }}
-              className="shrink-0 rounded-lg px-4 py-1.5 text-sm font-bold transition-colors"
-              style={{
-                backgroundColor: active ? 'var(--background)' : 'transparent',
-                color: active ? 'var(--brand-red)' : 'var(--muted-foreground)',
-                border: active ? '1px solid var(--border)' : '1px solid transparent',
-              }}>
-              {df.label}
-            </motion.button>
-          );
-        })}
-      </div>
+        {/* Arama */}
+        <div className="px-3 py-2 shrink-0 border-b border-border">
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Takim veya lig ara..."
+            className="w-full rounded-lg px-3 py-2 text-sm outline-none"
+            style={{
+              backgroundColor: 'var(--muted)',
+              color: 'var(--foreground)',
+              border: '1px solid var(--border)',
+            }}
+          />
+        </div>
 
-      {/* Zaman filtresi */}
-      <div className="flex gap-4 overflow-x-auto px-3 py-2 shrink-0 border-b border-border"
-        style={{ scrollbarWidth: 'none' }}>
-        {TIME_FILTERS.map(tf => {
-          const active = timeFilter === tf.id;
-          return (
-            <motion.button key={tf.id} onClick={() => setTimeFilter(tf.id)} whileTap={{ scale: 0.94 }}
-              className="shrink-0 text-sm font-semibold transition-colors"
-              style={{ color: active ? 'var(--accent)' : 'var(--muted-foreground)' }}>
-              {tf.label}
-              {active && (
-                <motion.div layoutId="time-underline" className="mt-0.5 h-[2px] rounded-full"
-                  style={{ backgroundColor: 'var(--accent)' }} />
-              )}
-            </motion.button>
-          );
-        })}
-      </div>
-
-      {/* Arama */}
-      <div className="px-3 py-2 shrink-0">
-        <input value={search} onChange={e => setSearch(e.target.value)}
-          placeholder="Takim veya lig ara..."
-          className="w-full rounded-lg px-3 py-2 text-sm outline-none"
-          style={{ backgroundColor: 'var(--muted)', color: 'var(--foreground)', border: '1px solid var(--border)' }} />
-      </div>
-
-      {/* ─── TikTok snap scroll ─── */}
-      <div
-        className="flex-1 w-full overflow-y-auto"
-        style={{ scrollSnapType: 'y mandatory', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}
-      >
-        {groups.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full gap-2">
-            <span className="text-4xl">{sport === 'futbol' ? '\u26BD' : '\uD83C\uDFC0'}</span>
-            <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
-              {sport === 'futbol' ? 'Futbol maci bulunamadi' : 'Basketbol maci bulunamadi'}
-            </p>
-          </div>
-        ) : groups.map(group => (
-          <div key={group.league}>
-
-            {/* ── Lig baslik — bayrak buyuk, sticky ── */}
-            <div
-              className="flex items-center gap-3 px-3 py-3 sticky top-0 z-10"
-              style={{ backgroundColor: 'var(--background)', borderBottom: '1px solid var(--border)' }}
-            >
-              {/* Bayrak %50 buyuk: text-base(1rem) → 1.5rem */}
-              <span style={{ fontSize: '1.5rem', lineHeight: 1 }}>{group.flag}</span>
-              <div className="flex-1 min-w-0">
-                <span className="text-[10px] font-bold uppercase tracking-wider block"
-                  style={{ color: 'oklch(0.45 0.010 264)' }}>
-                  {sport === 'futbol' ? 'Futbol' : 'Basketbol'}
-                </span>
-                <span className="text-sm font-bold truncate block" style={{ color: 'var(--foreground)' }}>
-                  {group.league}
-                </span>
-              </div>
-              <span className="text-xs font-semibold rounded-full px-2 py-0.5"
-                style={{ backgroundColor: 'var(--muted)', color: 'var(--muted-foreground)' }}>
-                {group.markets.length}
-              </span>
+        {/* Snap scroll listesi */}
+        <div
+          className="flex-1 w-full overflow-y-auto"
+          style={{
+            scrollSnapType: 'y mandatory',
+            WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'none',
+          }}
+        >
+          {groups.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full gap-2">
+              <span className="text-4xl">{sport === 'futbol' ? '\u26BD' : '\uD83C\uDFC0'}</span>
+              <p className="text-sm text-muted-foreground">Mac bulunamadi</p>
             </div>
+          ) : groups.map(group => (
+            <div key={group.league}>
 
-            {/* ── Mac kartlari — her biri tam yukseklik + snap ── */}
-            {group.markets.map(market => (
+              {/* Lig baslik */}
               <div
-                key={market.id}
-                style={{
-                  scrollSnapAlign: 'start',
-                  scrollSnapStop: 'always',
-                  minHeight: '55vh',
-                  display: 'flex',
-                  alignItems: 'stretch',
-                  width: '100%',
-                  padding: '8px',
-                  boxSizing: 'border-box',
-                }}
+                className="flex items-center gap-3 px-3 py-2 sticky top-0 z-10 border-b border-border"
+                style={{ backgroundColor: 'var(--background)' }}
               >
-                <MarketCard
-                  market={market}
-                  onBet={(type, odds) => onBetSelected({ marketId: market.id, market, type, odds, stake: 0 })}
-                  onFavorite={() => toggleFavorite(market.id)}
-                  isFavorite={favorites.includes(market.id)}
-                />
+                <span style={{ fontSize: '1.5rem', lineHeight: 1 }}>{group.flag}</span>
+                <div className="flex-1 min-w-0">
+                  <span className="text-[10px] font-bold uppercase tracking-wider block text-muted-foreground">
+                    {sport === 'futbol' ? 'Futbol' : 'Basketbol'}
+                  </span>
+                  <span className="text-sm font-bold truncate block text-foreground">
+                    {group.league}
+                  </span>
+                </div>
+                <span className="text-xs font-semibold rounded-full px-2 py-0.5 bg-muted text-muted-foreground">
+                  {group.markets.length}
+                </span>
               </div>
-            ))}
-          </div>
-        ))}
+
+              {/* Mac kartlari */}
+              {group.markets.map(market => (
+                <div
+                  key={market.id}
+                  style={{
+                    scrollSnapAlign: 'start',
+                    scrollSnapStop: 'always',
+                    minHeight: '52vh',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    width: '100%',
+                    padding: '6px',
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  <MarketCard
+                    market={market}
+                    onBet={(type, odds) =>
+                      onBetSelected({ marketId: market.id, market, type, odds, stake: 0 })
+                    }
+                    onFavorite={() => toggleFavorite(market.id)}
+                    isFavorite={favorites.includes(market.id)}
+                    onDetail={() => setSelectedMarket(market)}
+                  />
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+
+      {/* Detay modal */}
+      <MatchDetailModal
+        market={selectedMarket}
+        isOpen={!!selectedMarket}
+        onClose={() => setSelectedMarket(null)}
+        onBetSelected={(item) => {
+          onBetSelected(item);
+          setSelectedMarket(null);
+        }}
+      />
+    </>
   );
 }

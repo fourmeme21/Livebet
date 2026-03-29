@@ -4,7 +4,7 @@ import { Market, useBettingStore, BetSlipItem } from '@/lib/betting-store';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useRef, useMemo, useState } from 'react';
 import { MarketCard } from './market-card';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 // ─── Zaman filtresi ───────────────────────────────────────────────
 const TIME_FILTERS = [
@@ -39,16 +39,16 @@ const BASKETBALL_LEAGUES = new Set([
   'NBA',
 ]);
 
-// ─── Ülke bayrağı emoji ───────────────────────────────────────────
+// ─── Ülke bayrağı emoji — gizli Unicode yok ──────────────────────
 const LEAGUE_FLAGS: Record<string, string> = {
-  'UEFA Champions League': '🇪🇺',
-  'Premier League':        '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
-  'La Liga':               '🇪🇸',
-  'Bundesliga':            '🇩🇪',
-  'Serie A':               '🇮🇹',
-  'Ligue 1':               '🇫🇷',
-  'Turkish Süper Lig':     '🇹🇷',
-  'NBA':                   '🇺🇸',
+  'UEFA Champions League': '\uD83C\uDDEA\uD83C\uDDFA',
+  'Premier League':        '\uD83C\uDDEC\uD83C\uDDE7',
+  'La Liga':               '\uD83C\uDDEA\uD83C\uDDF8',
+  'Bundesliga':            '\uD83C\uDDE9\uD83C\uDDEA',
+  'Serie A':               '\uD83C\uDDEE\uD83C\uDDF9',
+  'Ligue 1':               '\uD83C\uDDEB\uD83C\uDDF7',
+  'Turkish Süper Lig':     '\uD83C\uDDF9\uD83C\uDDF7',
+  'NBA':                   '\uD83C\uDDFA\uD83C\uDDF8',
 };
 
 // ─── Liglere göre gruplama ────────────────────────────────────────
@@ -60,7 +60,7 @@ function groupByLeague(markets: Market[]): { league: string; flag: string; marke
   }
   return Array.from(map.entries()).map(([league, mkts]) => ({
     league,
-    flag: LEAGUE_FLAGS[league] ?? '🌍',
+    flag: LEAGUE_FLAGS[league] ?? '\uD83C\uDF0D',
     markets: mkts,
   }));
 }
@@ -73,7 +73,7 @@ type VirtualItem =
 interface MarketsListProps {
   markets: Market[];
   onBetSelected: (item: BetSlipItem) => void;
-  sport?: 'futbol' | 'basketbol';  // aktif tab'dan gelir
+  sport?: 'futbol' | 'basketbol';
 }
 
 export function MarketsList({ markets, onBetSelected, sport = 'futbol' }: MarketsListProps) {
@@ -83,14 +83,12 @@ export function MarketsList({ markets, onBetSelected, sport = 'futbol' }: Market
   const [dayFilter, setDayFilter] = useState('bugun');
   const parentRef = useRef<HTMLDivElement>(null);
 
-  // ─── Spor bazlı filtreleme ────────────────────────────────────
+  // ─── Filtreleme ───────────────────────────────────────────────
   const filtered = useMemo(() => {
     return markets.filter(m => {
-      // Spor filtresi
       if (sport === 'futbol' && !FOOTBALL_LEAGUES.has(m.name)) return false;
       if (sport === 'basketbol' && !BASKETBALL_LEAGUES.has(m.name)) return false;
 
-      // Arama filtresi
       if (search) {
         const q = search.toLowerCase();
         if (
@@ -126,7 +124,7 @@ export function MarketsList({ markets, onBetSelected, sport = 'futbol' }: Market
   return (
     <div className="flex h-full flex-col">
 
-      {/* ─── Gün filtresi — NORMA: Bugün / Pzts / Tümü ─── */}
+      {/* ─── Gün filtresi — Bugün / Pzts / Tümü ─── */}
       <div
         className="flex gap-2 px-3 py-2 shrink-0"
         style={{ borderBottom: '1px solid var(--border)' }}
@@ -218,7 +216,7 @@ export function MarketsList({ markets, onBetSelected, sport = 'futbol' }: Market
                 }}
               >
                 {item.kind === 'header' ? (
-                  /* ─── Lig header — NORMA tarzı: bayrak + lig adı ─── */
+                  /* ─── Lig header ─── */
                   <div
                     className="flex items-center gap-2 px-3 py-2"
                     style={{ borderBottom: '1px solid var(--border)' }}
@@ -272,13 +270,14 @@ export function MarketsList({ markets, onBetSelected, sport = 'futbol' }: Market
           })}
         </div>
 
+        {/* ─── Boş durum ─── */}
         {flatItems.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 gap-2">
             <span className="text-3xl">
-              {sport === 'futbol' ? '⚽' : '🏀'}
+              {sport === 'futbol' ? '\u26BD' : '\uD83C\uDFC0'}
             </span>
             <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
-              {sport === 'futbol' ? 'Futbol maçı bulunamadı' : 'Basketbol maçı bulunamadı'}
+              {sport === 'futbol' ? 'Futbol maci bulunamadi' : 'Basketbol maci bulunamadi'}
             </p>
           </div>
         )}

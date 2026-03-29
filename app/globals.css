@@ -95,7 +95,6 @@
   }
 }
 
-/* Glassmorphism 2.0 base styles */
 @layer components {
   .glass-card {
     @apply backdrop-blur-xl bg-card border border-border shadow-lg;
@@ -105,47 +104,28 @@
     @apply backdrop-blur-xl bg-card/80 border border-border/50 shadow-md;
   }
 
-  /* Breathing LIVE badge animation */
   @keyframes breathe {
-    0%, 100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.6;
-    }
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
   }
 
   .live-pulse {
     animation: breathe 2s ease-in-out infinite;
   }
 
-  /* Glow effect for odds changes */
   @keyframes glow-pulse {
-    0% {
-      box-shadow: 0 0 0 0 rgba(var(--accent), 0.7);
-    }
-    50% {
-      box-shadow: 0 0 20px 10px rgba(var(--accent), 0.3);
-    }
-    100% {
-      box-shadow: 0 0 0 0 rgba(var(--accent), 0);
-    }
+    0% { box-shadow: 0 0 0 0 rgba(var(--accent), 0.7); }
+    50% { box-shadow: 0 0 20px 10px rgba(var(--accent), 0.3); }
+    100% { box-shadow: 0 0 0 0 rgba(var(--accent), 0); }
   }
 
   .odds-glow {
     animation: glow-pulse 0.6s ease-out;
   }
 
-  /* Undo ring animation */
   @keyframes undo-ring-animate {
-    0% {
-      stroke-dashoffset: 0;
-      opacity: 1;
-    }
-    100% {
-      stroke-dashoffset: 150;
-      opacity: 0;
-    }
+    0% { stroke-dashoffset: 0; opacity: 1; }
+    100% { stroke-dashoffset: 150; opacity: 0; }
   }
 
   .undo-ring {

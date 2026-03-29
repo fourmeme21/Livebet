@@ -2,8 +2,7 @@
 
 import { Market } from '@/lib/betting-store';
 import { motion } from 'framer-motion';
-import { Heart, Zap } from 'lucide-react';
-import { Button } from './ui/button';
+import { Heart, Radio } from 'lucide-react';
 import { useState } from 'react';
 
 interface MarketCardProps {
@@ -13,117 +12,134 @@ interface MarketCardProps {
   isFavorite: boolean;
 }
 
-export function MarketCard({
-  market,
-  onBet,
-  onFavorite,
-  isFavorite,
-}: MarketCardProps) {
-  const [glowingOdds, setGlowingOdds] = useState<'home' | 'draw' | 'away' | null>(
-    null
-  );
+const SELECTION_LABELS: Record<'home' | 'draw' | 'away', string> = {
+  home: '1',
+  draw: 'X',
+  away: '2',
+};
+
+export function MarketCard({ market, onBet, onFavorite, isFavorite }: MarketCardProps) {
+  const [glowingOdds, setGlowingOdds] = useState<'home' | 'draw' | 'away' | null>(null);
 
   const handleOddsClick = (type: 'home' | 'draw' | 'away', odds: number) => {
     setGlowingOdds(type);
-    setTimeout(() => setGlowingOdds(null), 600);
+    setTimeout(() => setGlowingOdds(null), 550);
     onBet(type, odds);
   };
 
+  const oddsButtons = [
+    { type: 'home' as const, label: SELECTION_LABELS.home, value: market.odds.home, team: market.homeTeam },
+    ...(market.odds.draw ? [{ type: 'draw' as const, label: SELECTION_LABELS.draw, value: market.odds.draw, team: 'Beraberlik' }] : []),
+    { type: 'away' as const, label: SELECTION_LABELS.away, value: market.odds.away, team: market.awayTeam },
+  ];
+
   return (
     <motion.div
-      className="glass-card p-4 space-y-3"
-      whileHover={{ scale: 1.02 }}
-      transition={{ type: 'spring', stiffness: 300 }}
+      className="glass-card p-4 space-y-3 group"
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -1 }}
+      transition={{ type: 'spring', stiffness: 320, damping: 28 }}
     >
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <h3 className="font-semibold text-foreground text-sm line-clamp-2">
-            {market.homeTeam} vs {market.awayTeam}
-          </h3>
-          <p className="text-xs text-muted-foreground mt-1">{market.name}</p>
-        </div>
+      {/* ─── Üst: maç bilgisi + favori ─── */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
 
-        <motion.button
-          onClick={onFavorite}
-          className="ml-2"
-          whileHover={{ scale: 1.2 }}
-          whileTap={{ scale: 0.9 }}
-        >
-          <Heart
-            className={`w-5 h-5 transition-colors ${
-              isFavorite
-                ? 'fill-odds-positive text-odds-positive'
-                : 'text-muted-foreground hover:text-accent'
-            }`}
-          />
-        </motion.button>
-      </div>
-
-      {/* Live Badge */}
-      {market.isLive && (
-        <div className="flex items-center gap-2">
-          <div className="live-pulse w-2 h-2 bg-live-pulse rounded-full" />
-          <span className="text-xs font-semibold text-live-pulse uppercase">
-            Live
-          </span>
-        </div>
-      )}
-
-      {/* Odds Grid */}
-      <div className="grid gap-2">
-        <motion.button
-          onClick={() => handleOddsClick('home', market.odds.home)}
-          className={`glass-card-thin p-3 text-center transition-all ${
-            glowingOdds === 'home' ? 'odds-glow' : ''
-          }`}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <div className="text-xs text-muted-foreground mb-1">
-            {market.homeTeam.split(' ').pop()}
-          </div>
-          <div className="font-mono font-bold text-lg text-accent">
-            {market.odds.home.toFixed(2)}
-          </div>
-        </motion.button>
-
-        {market.odds.draw && (
-          <motion.button
-            onClick={() => handleOddsClick('draw', market.odds.draw!)}
-            className={`glass-card-thin p-3 text-center transition-all ${
-              glowingOdds === 'draw' ? 'odds-glow' : ''
-            }`}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          {/* Lig adı */}
+          <p
+            className="text-[10px] font-semibold tracking-widest uppercase mb-1.5"
+            style={{ color: 'var(--muted-foreground)' }}
           >
-            <div className="text-xs text-muted-foreground mb-1">Draw</div>
-            <div className="font-mono font-bold text-lg text-accent">
-              {market.odds.draw.toFixed(2)}
-            </div>
-          </motion.button>
-        )}
+            {market.name}
+          </p>
 
-        <motion.button
-          onClick={() => handleOddsClick('away', market.odds.away)}
-          className={`glass-card-thin p-3 text-center transition-all ${
-            glowingOdds === 'away' ? 'odds-glow' : ''
-          }`}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <div className="text-xs text-muted-foreground mb-1">
-            {market.awayTeam.split(' ').pop()}
+          {/* Takımlar */}
+          <div className="space-y-0.5">
+            <p className="text-sm font-semibold truncate" style={{ color: 'var(--foreground)' }}>
+              {market.homeTeam}
+            </p>
+            <p
+              className="text-[10px] font-medium"
+              style={{ color: 'var(--muted-foreground)' }}
+            >
+              vs
+            </p>
+            <p className="text-sm font-semibold truncate" style={{ color: 'var(--foreground)' }}>
+              {market.awayTeam}
+            </p>
           </div>
-          <div className="font-mono font-bold text-lg text-accent">
-            {market.odds.away.toFixed(2)}
-          </div>
-        </motion.button>
+        </div>
+
+        {/* Sağ: LIVE + favori */}
+        <div className="flex flex-col items-end gap-2 shrink-0">
+          {market.isLive && (
+            <div
+              className="luxury-badge"
+              style={{
+                backgroundColor: 'oklch(0.65 0.20 25 / 0.12)',
+                color: 'var(--live-pulse)',
+                border: '1px solid oklch(0.65 0.20 25 / 0.30)',
+              }}
+            >
+              <span className="live-pulse inline-block w-1.5 h-1.5 rounded-full bg-current" />
+              Canlı
+            </div>
+          )}
+
+          <motion.button
+            onClick={onFavorite}
+            whileHover={{ scale: 1.15 }}
+            whileTap={{ scale: 0.88 }}
+            className="p-1"
+          >
+            <Heart
+              className="w-4 h-4 transition-colors"
+              style={{
+                fill: isFavorite ? 'var(--accent)' : 'transparent',
+                color: isFavorite ? 'var(--accent)' : 'var(--muted-foreground)',
+              }}
+            />
+          </motion.button>
+        </div>
       </div>
 
-      {/* Volatility Indicator */}
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <Zap className="w-3 h-3" />
-        <span className="capitalize">{market.volatility} volatility</span>
+      {/* ─── Ayırıcı çizgi ─── */}
+      <div className="accent-divider" />
+
+      {/* ─── Oran butonları — yatay grid ─── */}
+      <div className={`grid gap-2 ${oddsButtons.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+        {oddsButtons.map(({ type, label, value }) => (
+          <motion.button
+            key={type}
+            onClick={() => handleOddsClick(type, value)}
+            className={`odds-btn glass-card-thin flex flex-col items-center justify-center py-2.5 px-1 ${
+              glowingOdds === type ? 'odds-glow' : ''
+            }`}
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.94 }}
+            style={{
+              borderColor: glowingOdds === type
+                ? 'var(--accent)'
+                : 'var(--border-subtle)',
+            }}
+          >
+            {/* 1 / X / 2 etiketi */}
+            <span
+              className="text-[10px] font-bold tracking-wider mb-1"
+              style={{ color: 'var(--muted-foreground)' }}
+            >
+              {label}
+            </span>
+
+            {/* Oran değeri — altın renk */}
+            <span
+              className="font-mono font-bold text-base tabular-nums"
+              style={{ color: 'var(--accent)' }}
+            >
+              {value.toFixed(2)}
+            </span>
+          </motion.button>
+        ))}
       </div>
     </motion.div>
   );

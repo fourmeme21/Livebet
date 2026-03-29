@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useBettingStore, BetSlipItem, Market } from '@/lib/betting-store';
 import { generateMarkets, simulateOddsUpdate, getSmartFavorites } from '@/lib/odds-simulator';
 import { Header } from '@/components/header';
@@ -14,49 +14,47 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 
 export default function DashboardPage() {
-  const {
-    markets,
-    addMarket,
-    updateMarket,
-    addToBetSlip,
-    favorites,
-    betSlip,
-  } = useBettingStore();
+  const { addMarket, addToBetSlip, favorites, betSlip } = useBettingStore();
 
-  const [isInitialized, setIsInitialized] = useState(false);
   const [betSlipOpen, setBetSlipOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [displayedMarkets, setDisplayedMarkets] = useState<Market[]>([]);
 
-  // Initialize markets
-  useEffect(() => {
-    if (!isInitialized && markets.length === 0) {
-      const newMarkets = generateMarkets(50);
-      newMarkets.forEach((market) => addMarket(market));
-      setDisplayedMarkets(newMarkets);
-      setIsInitialized(true);
-    } else if (markets.length > 0) {
-      setDisplayedMarkets(markets);
-    }
-  }, [isInitialized, markets, addMarket]);
+  // ─── FIX: useRef ile tek seferlik init kontrolü ───────────────────────────
+  // markets veya addMarket dep'e girmiyor → döngü yok
+  const initialized = useRef(false);
 
-  // Real-time odds simulation
   useEffect(() => {
+    if (initialized.current) return;
+    initialized.current = true;
+    const newMarkets = generateMarkets(50);
+    newMarkets.forEach((market) => addMarket(market));
+    setDisplayedMarkets(newMarkets);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ─── FIX: Odds simülasyonu local state'i günceller, Zustand'a dokunmaz ───
+  // displayedMarkets dep'e girmiyor (prev kullanıyoruz) → döngü yok
+  useEffect(() => {
+    if (displayedMarkets.length === 0) return;
+
     const interval = setInterval(() => {
-      displayedMarkets.forEach((market) => {
-        const updated = simulateOddsUpdate(market);
-        if (
-          updated.odds.home !== market.odds.home ||
-          updated.odds.away !== market.odds.away ||
-          updated.odds.draw !== market.odds.draw
-        ) {
-          updateMarket(market.id, updated);
-        }
-      });
+      setDisplayedMarkets((prev) =>
+        prev.map((market) => {
+          const updated = simulateOddsUpdate(market);
+          if (
+            updated.odds.home !== market.odds.home ||
+            updated.odds.away !== market.odds.away ||
+            updated.odds.draw !== market.odds.draw
+          ) {
+            return { ...market, ...updated };
+          }
+          return market;
+        })
+      );
     }, 500);
 
     return () => clearInterval(interval);
-  }, [displayedMarkets, updateMarket]);
+  }, [displayedMarkets.length]); // length değişmediği sürece interval yeniden kurulmaz
 
   const handleBetSelected = (item: BetSlipItem) => {
     addToBetSlip(item);

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -81,6 +81,18 @@ interface BettingStore {
   // Favorites
   toggleFavorite: (marketId: string) => void;
 }
+
+// ─── SSR-safe storage ────────────────────────────────────────────────────────
+
+const noopStorage = {
+  getItem: () => null,
+  setItem: () => {},
+  removeItem: () => {},
+};
+
+const ssrSafeStorage = createJSONStorage(() =>
+  typeof window !== 'undefined' ? localStorage : noopStorage
+);
 
 // ─── Store ───────────────────────────────────────────────────────────────────
 
@@ -228,6 +240,7 @@ export const useBettingStore = create<BettingStore>()(
     }),
     {
       name: 'livebet-store',
+      storage: ssrSafeStorage,
       // odds_value persist edilmez — mount'ta Supabase'den taze çekilir
       partialize: (state) => ({
         favorites: state.favorites,

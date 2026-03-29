@@ -12,15 +12,20 @@ interface SidebarProps {
 
 export function Sidebar({ favorites = [], onSelectMarket }: SidebarProps) {
   const balance = useBettingStore((s) => s.balance)
-  const activeBets = useBettingStore((s) => s.getActiveBets())
+
+  // FIX: getActiveBets() her çağrıda yeni array üretir → sonsuz döngü
+  // Bunun yerine placedBets'i seç, filtreyi burada uygula
+  const placedBets = useBettingStore((s) => s.placedBets)
+  const activeBets = placedBets.filter((b) => b.status === 'pending')
+
   const storeFavorites = useBettingStore((s) => s.favorites)
   const markets = useBettingStore((s) => s.markets)
   const toggleFavorite = useBettingStore((s) => s.toggleFavorite)
 
-  // Eğer prop olarak favorites geldiyse onu kullan, yoksa store'daki favorileri marketlerle eşle
-  const favoriteMarkets = favorites.length > 0 
-    ? favorites 
-    : markets.filter((m) => storeFavorites.includes(m.id))
+  const favoriteMarkets =
+    favorites.length > 0
+      ? favorites
+      : markets.filter((m) => storeFavorites.includes(m.id))
 
   return (
     <div className="flex h-full flex-col gap-6 overflow-y-auto p-4">

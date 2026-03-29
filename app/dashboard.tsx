@@ -20,8 +20,7 @@ export default function DashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [displayedMarkets, setDisplayedMarkets] = useState<Market[]>([]);
 
-  // ─── FIX: useRef ile tek seferlik init kontrolü ───────────────────────────
-  // markets veya addMarket dep'e girmiyor → döngü yok
+  // FIX: useRef ile tek seferlik init — markets dep'e girmiyor
   const initialized = useRef(false);
 
   useEffect(() => {
@@ -32,8 +31,7 @@ export default function DashboardPage() {
     setDisplayedMarkets(newMarkets);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ─── FIX: Odds simülasyonu local state'i günceller, Zustand'a dokunmaz ───
-  // displayedMarkets dep'e girmiyor (prev kullanıyoruz) → döngü yok
+  // FIX: Odds simülasyonu local state günceller, Zustand'a dokunmaz
   useEffect(() => {
     if (displayedMarkets.length === 0) return;
 
@@ -54,7 +52,7 @@ export default function DashboardPage() {
     }, 500);
 
     return () => clearInterval(interval);
-  }, [displayedMarkets.length]); // length değişmediği sürece interval yeniden kurulmaz
+  }, [displayedMarkets.length]);
 
   const handleBetSelected = (item: BetSlipItem) => {
     addToBetSlip(item);
@@ -68,7 +66,7 @@ export default function DashboardPage() {
       <Header />
 
       <div className="flex-1 flex overflow-hidden">
-        {/* Mobile: Hamburger + Markets */}
+        {/* Mobile */}
         <div className="md:hidden flex flex-col w-full overflow-hidden">
           <div className="px-4 py-2 border-b border-border flex gap-2">
             <Button
@@ -82,7 +80,6 @@ export default function DashboardPage() {
             </Button>
           </div>
 
-          {/* Sidebar overlay mobile */}
           <AnimatePresence>
             {sidebarOpen && (
               <>
@@ -120,15 +117,10 @@ export default function DashboardPage() {
             )}
           </AnimatePresence>
 
-          {/* Markets */}
           <div className="flex-1 overflow-hidden">
-            <MarketsList
-              markets={displayedMarkets}
-              onBetSelected={handleBetSelected}
-            />
+            <MarketsList markets={displayedMarkets} onBetSelected={handleBetSelected} />
           </div>
 
-          {/* Floating Bet Slip Button */}
           {betSlip.length > 0 && !betSlipOpen && (
             <motion.button
               onClick={() => setBetSlipOpen(true)}
@@ -143,9 +135,8 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Desktop: 4-column layout */}
+        {/* Desktop */}
         <div className="hidden md:grid md:grid-cols-4 flex-1 gap-4 p-4 overflow-hidden">
-          {/* Left: Account & Sidebar */}
           <div className="glass-card rounded-lg p-4 overflow-y-auto flex flex-col gap-4">
             <Sidebar
               favorites={smartFavorites}
@@ -163,50 +154,29 @@ export default function DashboardPage() {
             <FootballPitchTracker />
           </div>
 
-          {/* Center-Left: All Markets */}
           <div className="glass-card rounded-lg p-4 overflow-hidden flex flex-col">
             <h2 className="font-bold text-foreground mb-4">All Markets</h2>
-            <MarketsList
-              markets={displayedMarkets}
-              onBetSelected={handleBetSelected}
-            />
+            <MarketsList markets={displayedMarkets} onBetSelected={handleBetSelected} />
           </div>
 
-          {/* Center-Right: Smart Favorites */}
           <div className="glass-card rounded-lg p-4 overflow-y-auto">
             <h2 className="font-bold text-foreground mb-4">Quick Access</h2>
             <div className="space-y-3">
               {smartFavorites.map((market) => (
                 <motion.button
                   key={market.id}
-                  onClick={() => {
-                    handleBetSelected({
-                      marketId: market.id,
-                      market,
-                      type: 'home',
-                      odds: market.odds.home,
-                      stake: 0,
-                    });
-                  }}
+                  onClick={() => handleBetSelected({ marketId: market.id, market, type: 'home', odds: market.odds.home, stake: 0 })}
                   className="w-full text-left glass-card-thin p-3 rounded-lg hover:bg-muted/50 transition-colors"
                   whileHover={{ x: 4, scale: 1.02 }}
                 >
-                  <p className="text-xs text-muted-foreground line-clamp-1 mb-1">
-                    {market.name}
-                  </p>
+                  <p className="text-xs text-muted-foreground line-clamp-1 mb-1">{market.name}</p>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-semibold text-foreground text-sm">
-                        {market.homeTeam.split(' ').pop()}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {market.awayTeam.split(' ').pop()}
-                      </p>
+                      <p className="font-semibold text-foreground text-sm">{market.homeTeam.split(' ').pop()}</p>
+                      <p className="text-xs text-muted-foreground">{market.awayTeam.split(' ').pop()}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-mono text-accent font-bold text-sm">
-                        {market.odds.home.toFixed(2)}
-                      </p>
+                      <p className="font-mono text-accent font-bold text-sm">{market.odds.home.toFixed(2)}</p>
                       {market.isLive && (
                         <div className="flex items-center gap-1 mt-1">
                           <div className="w-1.5 h-1.5 bg-live-pulse rounded-full live-pulse" />
@@ -220,7 +190,6 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Right: Betting Slip */}
           <div className="glass-card rounded-lg overflow-hidden flex flex-col">
             <div className="p-4 border-b border-border">
               <h2 className="font-bold text-foreground">Betting Slip</h2>
@@ -230,7 +199,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Mobile: Bottom Sheet Betting Slip */}
       <BetSlip isOpen={betSlipOpen} onClose={() => setBetSlipOpen(false)} />
     </div>
   );

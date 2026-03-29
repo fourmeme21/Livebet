@@ -23,7 +23,6 @@ export default function DashboardPage() {
 
   const initialized = useRef(false);
 
-  // ─── Market init ─────────────────────────────────────────────────
   useEffect(() => {
     if (initialized.current) return;
     initialized.current = true;
@@ -32,7 +31,6 @@ export default function DashboardPage() {
     setDisplayedMarkets(newMarkets);
   }, []); // eslint-disable-line
 
-  // ─── Odds simülasyonu ─────────────────────────────────────────────
   useEffect(() => {
     if (displayedMarkets.length === 0) return;
     const interval = setInterval(() => {
@@ -65,43 +63,43 @@ export default function DashboardPage() {
     setBetSlipOpen(false);
   };
 
-  // Desktop sidebar için
   const favorites = useBettingStore(s => s.favorites);
   const smartFavorites = getSmartFavorites(displayedMarkets, favorites);
 
-  // Aktif spor — sadece futbol ve basketbol
   const activeSport: 'futbol' | 'basketbol' =
     activeTab === 'basketbol' ? 'basketbol' : 'futbol';
 
   return (
     <div className="flex h-dvh flex-col bg-background">
 
-      {/* ─── Header — kırmızı NORMA header ─── */}
+      {/* Header */}
       <Header couponCount={betSlip.length} onCouponOpen={() => setBetSlipOpen(true)} />
 
-      {/* ─── İçerik ─── */}
+      {/* Icerik — flex-1 kalan tum alani kaplar */}
       <div className="flex flex-1 overflow-hidden">
 
-        {/* ── Mobil: tek sütun ── */}
-        <div className="flex w-full flex-col overflow-hidden md:hidden">
+        {/* ── Mobil: tam genislik tek sutun ── */}
+        <div className="flex w-full flex-col md:hidden overflow-hidden">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
-              className="flex flex-1 overflow-hidden"
+              className="flex flex-1 w-full overflow-hidden"
               initial={{ opacity: 0, x: 12 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -12 }}
               transition={{ duration: 0.15 }}
             >
               {(activeTab === 'futbol' || activeTab === 'basketbol') && (
-                <MarketsList
-                  markets={displayedMarkets}
-                  onBetSelected={handleBetSelected}
-                  sport={activeSport}
-                />
+                <div className="flex flex-1 w-full overflow-hidden">
+                  <MarketsList
+                    markets={displayedMarkets}
+                    onBetSelected={handleBetSelected}
+                    sport={activeSport}
+                  />
+                </div>
               )}
               {activeTab === 'hesabim' && (
-                <div className="flex-1 overflow-y-auto">
+                <div className="flex-1 w-full overflow-y-auto">
                   <Hesabim />
                 </div>
               )}
@@ -109,7 +107,7 @@ export default function DashboardPage() {
           </AnimatePresence>
         </div>
 
-        {/* ── Desktop: 4 sütun ── */}
+        {/* ── Desktop: 4 sutun ── */}
         <div className="hidden md:grid md:grid-cols-4 flex-1 gap-4 p-4 overflow-hidden">
           <div className="glass-card rounded-lg p-4 overflow-y-auto flex flex-col gap-4">
             <Sidebar
@@ -139,13 +137,9 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ─── Kullanıcı statü çubuğu — NORMA tarzı (sadece mobil) ─── */}
-      <div className="md:hidden">
-        <UserStatusBar username="Kullanıcı" />
-      </div>
-
-      {/* ─── Alt nav — NORMA tarzı (sadece mobil) ─── */}
-      <div className="md:hidden">
+      {/* Kullanici status + Alt nav — mobilde ust uste degil, birlestir */}
+      <div className="md:hidden flex flex-col shrink-0">
+        <UserStatusBar username="Kullanici" />
         <BottomNav
           activeTab={activeTab}
           onTabChange={handleTabChange}
@@ -153,11 +147,11 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* ─── Mobil Bet Slip ─── */}
+      {/* Mobil Bet Slip — overlay */}
       <div className="md:hidden">
         <BetSlip isOpen={betSlipOpen} onClose={() => setBetSlipOpen(false)} />
       </div>
+
     </div>
   );
-            }
-            
+}

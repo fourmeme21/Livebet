@@ -2,7 +2,7 @@
 
 import { useBettingStore, BetSlipItem } from '@/lib/betting-store';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Zap } from 'lucide-react';
+import { X, ArrowRight, RotateCcw } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { UndoRing } from './undo-ring';
@@ -12,6 +12,12 @@ interface BetSlipProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+const SELECTION_LABEL: Record<string, string> = {
+  home: 'Ev Sahibi',
+  draw: 'Beraberlik',
+  away: 'Deplasman',
+};
 
 export function BetSlip({ isOpen, onClose }: BetSlipProps) {
   const {
@@ -29,20 +35,18 @@ export function BetSlip({ isOpen, onClose }: BetSlipProps) {
   const [isPlacing, setIsPlacing] = useState(false);
   const [undoTimeExpired, setUndoTimeExpired] = useState(false);
 
-  // Auto-clear undo mode after 2 seconds
   useEffect(() => {
     if (undoMode) {
-      const timer = setTimeout(() => {
-        setUndoTimeExpired(true);
-      }, 2000);
+      const timer = setTimeout(() => setUndoTimeExpired(true), 2000);
       return () => clearTimeout(timer);
     }
   }, [undoMode]);
 
-  const totalOdds = betSlip.reduce((acc, item) => acc * item.odds, 1);
+  const totalOdds   = betSlip.reduce((acc, item) => acc * item.odds, 1);
   const stakeAmount = parseFloat(stake) || 0;
-  const potential = stakeAmount * totalOdds;
-  const isValid = stakeAmount > 0 && stakeAmount <= balance && betSlip.length > 0;
+  const potential   = stakeAmount * totalOdds;
+  const isValid     = stakeAmount >= 5 && stakeAmount <= balance && betSlip.length > 0;
+  const isOverBalance = stakeAmount > balance && stakeAmount > 0;
 
   const handlePlaceBet = () => {
     if (!isValid) return;
@@ -63,185 +67,332 @@ export function BetSlip({ isOpen, onClose }: BetSlipProps) {
         onExpire={() => setUndoTimeExpired(true)}
       />
 
+      {/* Mobil backdrop */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            key="backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/50 z-40 md:hidden"
+            className="fixed inset-0 z-40 md:hidden"
+            style={{ backgroundColor: 'oklch(0 0 0 / 0.65)' }}
           />
         )}
+      </AnimatePresence>
 
-        <motion.div
-          initial={{ y: '100%' }}
-          animate={{ y: isOpen ? 0 : '100%' }}
-          exit={{ y: '100%' }}
-          transition={{ type: 'spring', damping: 20 }}
-          className="fixed bottom-0 left-0 right-0 z-50 md:static md:translate-y-0 md:h-auto"
+      {/* Panel */}
+      <motion.div
+        initial={{ y: '100%' }}
+        animate={{ y: isOpen ? 0 : '100%' }}
+        exit={{ y: '100%' }}
+        transition={{ type: 'spring', damping: 22, stiffness: 260 }}
+        className="fixed bottom-0 left-0 right-0 z-50 md:static md:translate-y-0"
+      >
+        <div
+          className="glass-card md:rounded-xl rounded-t-2xl overflow-hidden"
+          style={{ maxHeight: '90dvh', overflowY: 'auto' }}
         >
-          <div className="glass-card rounded-t-2xl md:rounded-lg p-4 max-h-[90vh] overflow-y-auto md:max-h-none">
-            <div className="flex items-center justify-between mb-4 md:hidden">
-              <h2 className="font-bold text-foreground">Betting Slip</h2>
-              <button
-                onClick={onClose}
-                className="p-2 hover:bg-muted rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
 
-            {/* Bets List */}
-            <div className="space-y-2 mb-4">
+          {/* ─── Başlık ─── */}
+          <div
+            className="flex items-center justify-between px-4 py-3 sticky top-0"
+            style={{
+              backgroundColor: 'oklch(0.14 0.010 264 / 0.95)',
+              backdropFilter: 'blur(12px)',
+              borderBottom: '1px solid var(--border-subtle)',
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <h2
+                className="text-sm font-bold tracking-tight"
+                style={{ color: 'var(--foreground)' }}
+              >
+                Bahis Kuponu
+              </h2>
+              {betSlip.length > 0 && (
+                <span
+                  className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                  style={{
+                    backgroundColor: 'var(--accent-muted)',
+                    color: 'var(--accent)',
+                  }}
+                >
+                  {betSlip.length}
+                </span>
+              )}
+            </div>
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg md:hidden transition-colors"
+              style={{ color: 'var(--muted-foreground)' }}
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="p-4 space-y-3">
+
+            {/* ─── Bahis listesi ─── */}
+            <AnimatePresence initial={false}>
               {betSlip.map((item) => (
                 <motion.div
                   key={item.marketId}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="glass-card-thin p-3 flex items-center justify-between"
+                  initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                  animate={{ opacity: 1, height: 'auto', marginBottom: 8 }}
+                  exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="glass-card-thin p-3"
                 >
-                  <div className="flex-1">
-                    <p className="text-xs text-muted-foreground line-clamp-1">
-                      {item.market.name}
-                    </p>
-                    <p className="text-sm font-semibold text-foreground">
-                      {item.type === 'home'
-                        ? item.market.homeTeam
-                        : item.type === 'away'
-                        ? item.market.awayTeam
-                        : 'Draw'}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="text-right">
-                      <div className="text-xs text-muted-foreground">Odds</div>
-                      <div className="font-mono font-bold text-accent">
-                        {item.odds.toFixed(2)}
-                      </div>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p
+                        className="text-[10px] uppercase tracking-wider font-medium truncate mb-0.5"
+                        style={{ color: 'var(--muted-foreground)' }}
+                      >
+                        {item.market.name}
+                      </p>
+                      <p
+                        className="text-xs font-semibold truncate"
+                        style={{ color: 'var(--foreground)' }}
+                      >
+                        {item.type === 'home'
+                          ? item.market.homeTeam
+                          : item.type === 'away'
+                          ? item.market.awayTeam
+                          : 'Beraberlik'}
+                      </p>
+                      <p
+                        className="text-[10px] mt-0.5"
+                        style={{ color: 'var(--muted-foreground)' }}
+                      >
+                        {SELECTION_LABEL[item.type]}
+                      </p>
                     </div>
-                    <button
-                      onClick={() => removeFromBetSlip(item.marketId)}
-                      className="p-2 hover:bg-muted rounded-lg transition-colors"
-                    >
-                      <X className="w-4 h-4 text-muted-foreground" />
-                    </button>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span
+                        className="font-mono font-bold text-sm tabular-nums"
+                        style={{ color: 'var(--accent)' }}
+                      >
+                        {item.odds.toFixed(2)}
+                      </span>
+                      <button
+                        onClick={() => removeFromBetSlip(item.marketId)}
+                        className="p-1 rounded-md transition-colors"
+                        style={{ color: 'var(--muted-foreground)' }}
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 </motion.div>
               ))}
-            </div>
+            </AnimatePresence>
+
+            {/* ─── Boş durum ─── */}
+            {betSlip.length === 0 && (
+              <div className="py-10 text-center space-y-1">
+                <p
+                  className="text-sm font-medium"
+                  style={{ color: 'var(--muted-foreground)' }}
+                >
+                  Kuponda bahis yok
+                </p>
+                <p
+                  className="text-xs"
+                  style={{ color: 'oklch(0.45 0.008 264)' }}
+                >
+                  Oran butonuna tıklayarak ekle
+                </p>
+              </div>
+            )}
 
             {betSlip.length > 0 && (
               <>
-                {/* Odds Summary */}
-                <div className="glass-card-thin p-3 mb-4 space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Total Odds</span>
-                    <span className="font-mono font-bold text-accent">
-                      {totalOdds.toFixed(2)}
-                    </span>
-                  </div>
+                {/* ─── Toplam oran ─── */}
+                <div
+                  className="flex items-center justify-between px-3 py-2 rounded-lg"
+                  style={{ backgroundColor: 'var(--muted)' }}
+                >
+                  <span
+                    className="text-xs"
+                    style={{ color: 'var(--muted-foreground)' }}
+                  >
+                    Toplam Oran
+                  </span>
+                  <span
+                    className="font-mono font-bold text-sm tabular-nums"
+                    style={{ color: 'var(--accent)' }}
+                  >
+                    {totalOdds.toFixed(2)}
+                  </span>
                 </div>
 
-                {/* Stake Input */}
-                <div className="mb-4">
-                  <label className="text-xs text-muted-foreground block mb-2">
-                    Stake
+                {/* ─── Stake girişi ─── */}
+                <div className="space-y-1.5">
+                  <label
+                    className="text-[10px] uppercase tracking-wider font-semibold"
+                    style={{ color: 'var(--muted-foreground)' }}
+                  >
+                    Bahis Miktarı
                   </label>
                   <div className="flex gap-2">
-                    <Input
-                      type="number"
-                      value={stake}
-                      onChange={(e) => setStake(e.target.value)}
-                      placeholder="Enter stake"
-                      className="flex-1"
-                    />
-                    <Button
-                      variant="outline"
-                      size="sm"
+                    <div className="relative flex-1">
+                      <Input
+                        type="number"
+                        value={stake}
+                        onChange={(e) => setStake(e.target.value)}
+                        placeholder="0.00"
+                        min={5}
+                        className="pr-6 font-mono text-sm"
+                        style={{
+                          borderColor: isOverBalance
+                            ? 'var(--destructive)'
+                            : 'var(--border)',
+                        }}
+                      />
+                      <span
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs pointer-events-none"
+                        style={{ color: 'var(--muted-foreground)' }}
+                      >
+                        ₺
+                      </span>
+                    </div>
+                    <button
                       onClick={() => setStake((balance / 2).toFixed(2))}
-                      className="text-xs"
+                      className="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                      style={{
+                        backgroundColor: 'var(--muted)',
+                        color: 'var(--muted-foreground)',
+                      }}
                     >
-                      50%
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
+                      %50
+                    </button>
+                    <button
                       onClick={() => setStake(balance.toFixed(2))}
-                      className="text-xs"
+                      className="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                      style={{
+                        backgroundColor: 'var(--muted)',
+                        color: 'var(--muted-foreground)',
+                      }}
                     >
                       Max
-                    </Button>
+                    </button>
                   </div>
+                  {isOverBalance && (
+                    <p
+                      className="text-[10px]"
+                      style={{ color: 'var(--destructive)' }}
+                    >
+                      Yetersiz bakiye
+                    </p>
+                  )}
                 </div>
 
-                {/* Potential Return */}
+                {/* ─── Potansiyel kazanç ─── */}
                 <motion.div
-                  className="glass-card-thin p-3 mb-4"
+                  className="glass-card-thin px-4 py-3"
                   animate={{
-                    boxShadow: isValid
-                      ? '0 0 20px rgba(86, 180, 211, 0.3)'
-                      : 'none',
+                    borderColor: isValid
+                      ? 'oklch(0.78 0.14 78 / 0.35)'
+                      : 'var(--border-subtle)',
                   }}
+                  transition={{ duration: 0.3 }}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Potential</span>
-                    <span className="font-mono font-bold text-2xl text-accent">
-                      {potential.toFixed(2)}
+                    <span
+                      className="text-xs"
+                      style={{ color: 'var(--muted-foreground)' }}
+                    >
+                      Tahmini Kazanç
                     </span>
+                    <div className="text-right">
+                      <span
+                        className="font-mono font-bold text-xl tabular-nums"
+                        style={{ color: isValid ? 'var(--accent)' : 'var(--muted-foreground)' }}
+                      >
+                        {potential.toFixed(2)}
+                      </span>
+                      <span
+                        className="text-xs ml-0.5"
+                        style={{ color: 'var(--muted-foreground)' }}
+                      >
+                        ₺
+                      </span>
+                    </div>
                   </div>
                 </motion.div>
 
-                {/* Place Bet Button */}
+                {/* ─── Place Bet butonu ─── */}
                 <motion.button
                   onClick={handlePlaceBet}
                   disabled={!isValid || isPlacing}
-                  whileHover={isValid ? { scale: 1.02 } : {}}
-                  whileTap={isValid ? { scale: 0.98 } : {}}
-                  className={`w-full py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 mb-2 ${
-                    isValid
-                      ? 'bg-accent text-accent-foreground hover:bg-accent/90'
-                      : 'bg-muted text-muted-foreground cursor-not-allowed'
-                  }`}
+                  whileHover={isValid ? { scale: 1.015 } : {}}
+                  whileTap={isValid ? { scale: 0.985 } : {}}
+                  className="w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-opacity"
+                  style={{
+                    backgroundColor: isValid ? 'var(--accent)' : 'var(--muted)',
+                    color: isValid ? 'var(--accent-foreground)' : 'var(--muted-foreground)',
+                    cursor: isValid ? 'pointer' : 'not-allowed',
+                    opacity: isPlacing ? 0.7 : 1,
+                  }}
                 >
-                  <Zap className="w-5 h-5" />
-                  {isPlacing ? 'Placing...' : 'Place Bet'}
+                  {isPlacing ? (
+                    <>
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ repeat: Infinity, duration: 0.8, ease: 'linear' }}
+                        className="w-4 h-4 rounded-full border-2 border-current border-t-transparent"
+                      />
+                      İşleniyor...
+                    </>
+                  ) : (
+                    <>
+                      Bahis Yap
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
                 </motion.button>
 
-                {/* Clear Button */}
-                <Button
-                  variant="outline"
-                  className="w-full"
+                {/* ─── Kuponu temizle ─── */}
+                <button
                   onClick={clearBetSlip}
                   disabled={isPlacing}
+                  className="w-full py-2 text-xs font-medium transition-colors"
+                  style={{ color: 'var(--muted-foreground)' }}
                 >
-                  Clear Slip
-                </Button>
+                  Kuponu Temizle
+                </button>
               </>
             )}
 
-            {/* Undo Available */}
-            {undoMode && !undoTimeExpired && lastBetId && (
-              <motion.button
-                onClick={undoLastBet}
-                className="w-full py-3 rounded-lg bg-muted text-foreground font-semibold mt-4 hover:bg-muted/80 transition-colors"
-                whileHover={{ scale: 1.02 }}
-              >
-                Undo Last Bet
-              </motion.button>
-            )}
-
-            {betSlip.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                <p>No bets selected</p>
-                <p className="text-xs mt-1">Tap odds to add to slip</p>
-              </div>
-            )}
+            {/* ─── Undo butonu ─── */}
+            <AnimatePresence>
+              {undoMode && !undoTimeExpired && lastBetId && (
+                <motion.button
+                  key="undo"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 8 }}
+                  onClick={undoLastBet}
+                  className="w-full py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm font-semibold transition-colors"
+                  style={{
+                    backgroundColor: 'var(--muted)',
+                    color: 'var(--foreground)',
+                    border: '1px solid var(--border-subtle)',
+                  }}
+                  whileHover={{ scale: 1.01 }}
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  Son Bahsi Geri Al
+                </motion.button>
+              )}
+            </AnimatePresence>
           </div>
-        </motion.div>
-      </AnimatePresence>
+        </div>
+      </motion.div>
     </>
   );
 }
-

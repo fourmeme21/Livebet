@@ -1,56 +1,53 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useBettingStore, BetSlipItem, Market } from '@/lib/betting-store';
 import { generateMarkets, simulateOddsUpdate, getSmartFavorites } from '@/lib/odds-simulator';
 import { Header } from '@/components/header';
+import { BottomNav, TabId } from '@/components/bottom-nav';
 import { MarketsList } from '@/components/markets-list';
 import { BetSlip } from '@/components/bet-slip';
-import { Sidebar } from '@/components/sidebar';
+import { Hesabim } from '@/components/hesabim';
 import { StatsPanel } from '@/components/stats-panel';
+import { Sidebar } from '@/components/sidebar';
 import { FootballPitchTracker } from '@/components/pitch-tracker';
-import { Button } from '@/components/ui/button';
+import { UserStatusBar } from '@/components/user-status-bar';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X } from 'lucide-react';
 
 export default function DashboardPage() {
-  const { addMarket, addToBetSlip, favorites, betSlip } = useBettingStore();
+  const { addMarket, addToBetSlip, betSlip } = useBettingStore();
 
+  const [activeTab, setActiveTab] = useState<TabId>('futbol');
   const [betSlipOpen, setBetSlipOpen] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [displayedMarkets, setDisplayedMarkets] = useState<Market[]>([]);
 
-  // FIX: useRef ile tek seferlik init — markets dep'e girmiyor
   const initialized = useRef(false);
 
+  // ─── Market init ─────────────────────────────────────────────────
   useEffect(() => {
     if (initialized.current) return;
     initialized.current = true;
     const newMarkets = generateMarkets(50);
-    newMarkets.forEach((market) => addMarket(market));
+    newMarkets.forEach(m => addMarket(m));
     setDisplayedMarkets(newMarkets);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); // eslint-disable-line
 
-  // FIX: Odds simülasyonu local state günceller, Zustand'a dokunmaz
+  // ─── Odds simülasyonu ─────────────────────────────────────────────
   useEffect(() => {
     if (displayedMarkets.length === 0) return;
-
     const interval = setInterval(() => {
-      setDisplayedMarkets((prev) =>
-        prev.map((market) => {
+      setDisplayedMarkets(prev =>
+        prev.map(market => {
           const updated = simulateOddsUpdate(market);
           if (
             updated.odds.home !== market.odds.home ||
             updated.odds.away !== market.odds.away ||
             updated.odds.draw !== market.odds.draw
-          ) {
-            return { ...market, ...updated };
-          }
+          ) return { ...market, ...updated };
           return market;
         })
       );
     }, 500);
-
     return () => clearInterval(interval);
   }, [displayedMarkets.length]);
 
@@ -59,147 +56,108 @@ export default function DashboardPage() {
     setBetSlipOpen(true);
   };
 
+  const handleTabChange = (tab: TabId) => {
+    if (tab === 'kuponlar') {
+      setBetSlipOpen(true);
+      return;
+    }
+    setActiveTab(tab);
+    setBetSlipOpen(false);
+  };
+
+  // Desktop sidebar için
+  const favorites = useBettingStore(s => s.favorites);
   const smartFavorites = getSmartFavorites(displayedMarkets, favorites);
 
+  // Aktif spor — sadece futbol ve basketbol
+  const activeSport: 'futbol' | 'basketbol' =
+    activeTab === 'basketbol' ? 'basketbol' : 'futbol';
+
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Header />
+    <div className="flex h-dvh flex-col bg-background">
 
-      <div className="flex-1 flex overflow-hidden">
-        {/* Mobile */}
-        <div className="md:hidden flex flex-col w-full overflow-hidden">
-          <div className="px-4 py-2 border-b border-border flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="flex-1 flex items-center justify-center gap-2"
+      {/* ─── Header — kırmızı NORMA header ─── */}
+      <Header couponCount={betSlip.length} onCouponOpen={() => setBetSlipOpen(true)} />
+
+      {/* ─── İçerik ─── */}
+      <div className="flex flex-1 overflow-hidden">
+
+        {/* ── Mobil: tek sütun ── */}
+        <div className="flex w-full flex-col overflow-hidden md:hidden">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              className="flex flex-1 overflow-hidden"
+              initial={{ opacity: 0, x: 12 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -12 }}
+              transition={{ duration: 0.15 }}
             >
-              {sidebarOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-              {sidebarOpen ? 'Markets' : 'Menu'}
-            </Button>
-          </div>
-
-          <AnimatePresence>
-            {sidebarOpen && (
-              <>
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  onClick={() => setSidebarOpen(false)}
-                  className="absolute inset-0 bg-black/50 z-10"
+              {(activeTab === 'futbol' || activeTab === 'basketbol') && (
+                <MarketsList
+                  markets={displayedMarkets}
+                  onBetSelected={handleBetSelected}
+                  sport={activeSport}
                 />
-                <motion.div
-                  initial={{ x: '-100%' }}
-                  animate={{ x: 0 }}
-                  exit={{ x: '-100%' }}
-                  transition={{ type: 'spring', damping: 20 }}
-                  className="absolute left-0 top-16 bottom-0 w-80 z-20 overflow-y-auto"
-                >
-                  <div className="p-4">
-                    <Sidebar
-                      favorites={smartFavorites}
-                      onSelectMarket={(market) => {
-                        handleBetSelected({
-                          marketId: market.id,
-                          market,
-                          type: 'home',
-                          odds: market.odds.home,
-                          stake: 0,
-                        });
-                        setSidebarOpen(false);
-                      }}
-                    />
-                  </div>
-                </motion.div>
-              </>
-            )}
+              )}
+              {activeTab === 'hesabim' && (
+                <div className="flex-1 overflow-y-auto">
+                  <Hesabim />
+                </div>
+              )}
+            </motion.div>
           </AnimatePresence>
-
-          <div className="flex-1 overflow-hidden">
-            <MarketsList markets={displayedMarkets} onBetSelected={handleBetSelected} />
-          </div>
-
-          {betSlip.length > 0 && !betSlipOpen && (
-            <motion.button
-              onClick={() => setBetSlipOpen(true)}
-              className="fixed bottom-6 right-6 z-40 px-6 py-3 bg-accent text-accent-foreground rounded-full font-semibold shadow-lg flex items-center gap-2"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-            >
-              <span className="font-bold">{betSlip.length}</span>
-            </motion.button>
-          )}
         </div>
 
-        {/* Desktop */}
+        {/* ── Desktop: 4 sütun ── */}
         <div className="hidden md:grid md:grid-cols-4 flex-1 gap-4 p-4 overflow-hidden">
           <div className="glass-card rounded-lg p-4 overflow-y-auto flex flex-col gap-4">
             <Sidebar
               favorites={smartFavorites}
-              onSelectMarket={(market) => {
-                handleBetSelected({
-                  marketId: market.id,
-                  market,
-                  type: 'home',
-                  odds: market.odds.home,
-                  stake: 0,
-                });
-              }}
+              onSelectMarket={(market) => handleBetSelected({
+                marketId: market.id, market, type: 'home', odds: market.odds.home, stake: 0,
+              })}
             />
             <StatsPanel />
             <FootballPitchTracker />
           </div>
 
-          <div className="glass-card rounded-lg p-4 overflow-hidden flex flex-col">
-            <h2 className="font-bold text-foreground mb-4">All Markets</h2>
-            <MarketsList markets={displayedMarkets} onBetSelected={handleBetSelected} />
-          </div>
-
-          <div className="glass-card rounded-lg p-4 overflow-y-auto">
-            <h2 className="font-bold text-foreground mb-4">Quick Access</h2>
-            <div className="space-y-3">
-              {smartFavorites.map((market) => (
-                <motion.button
-                  key={market.id}
-                  onClick={() => handleBetSelected({ marketId: market.id, market, type: 'home', odds: market.odds.home, stake: 0 })}
-                  className="w-full text-left glass-card-thin p-3 rounded-lg hover:bg-muted/50 transition-colors"
-                  whileHover={{ x: 4, scale: 1.02 }}
-                >
-                  <p className="text-xs text-muted-foreground line-clamp-1 mb-1">{market.name}</p>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-semibold text-foreground text-sm">{market.homeTeam.split(' ').pop()}</p>
-                      <p className="text-xs text-muted-foreground">{market.awayTeam.split(' ').pop()}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-mono text-accent font-bold text-sm">{market.odds.home.toFixed(2)}</p>
-                      {market.isLive && (
-                        <div className="flex items-center gap-1 mt-1">
-                          <div className="w-1.5 h-1.5 bg-live-pulse rounded-full live-pulse" />
-                          <span className="text-xs text-live-pulse">Live</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </motion.button>
-              ))}
-            </div>
+          <div className="glass-card rounded-lg overflow-hidden flex flex-col col-span-2">
+            <MarketsList
+              markets={displayedMarkets}
+              onBetSelected={handleBetSelected}
+              sport={activeSport}
+            />
           </div>
 
           <div className="glass-card rounded-lg overflow-hidden flex flex-col">
             <div className="p-4 border-b border-border">
-              <h2 className="font-bold text-foreground">Betting Slip</h2>
+              <h2 className="font-bold">Bahis Kuponu</h2>
             </div>
             <BetSlip isOpen={true} onClose={() => {}} />
           </div>
         </div>
       </div>
 
-      <BetSlip isOpen={betSlipOpen} onClose={() => setBetSlipOpen(false)} />
+      {/* ─── Kullanıcı statü çubuğu — NORMA tarzı (sadece mobil) ─── */}
+      <div className="md:hidden">
+        <UserStatusBar username="Kullanıcı" />
+      </div>
+
+      {/* ─── Alt nav — NORMA tarzı (sadece mobil) ─── */}
+      <div className="md:hidden">
+        <BottomNav
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          couponCount={betSlip.length}
+        />
+      </div>
+
+      {/* ─── Mobil Bet Slip ─── */}
+      <div className="md:hidden">
+        <BetSlip isOpen={betSlipOpen} onClose={() => setBetSlipOpen(false)} />
+      </div>
     </div>
   );
-}
+            }
+            

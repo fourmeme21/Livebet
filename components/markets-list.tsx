@@ -122,7 +122,7 @@ export function MarketsList({ markets, onBetSelected, sport = 'futbol' }: Market
   });
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full w-full flex-col">
 
       {/* ─── Gün filtresi — Bugün / Pzts / Tümü ─── */}
       <div
@@ -196,7 +196,7 @@ export function MarketsList({ markets, onBetSelected, sport = 'futbol' }: Market
       <div
         ref={parentRef}
         className="flex-1 overflow-y-auto"
-        style={{ contain: 'strict' }}
+        style={{ contain: 'content' }}
       >
         <div style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
           {virtualizer.getVirtualItems().map(vItem => {
@@ -248,7 +248,7 @@ export function MarketsList({ markets, onBetSelected, sport = 'futbol' }: Market
                   </div>
                 ) : (
                   /* ─── Market kartı ─── */
-                  <div className="px-3 pb-2 pt-1">
+                  <div className="pb-2 pt-1 w-full">
                     <MarketCard
                       market={item.market}
                       onBet={(type, odds) =>

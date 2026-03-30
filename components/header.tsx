@@ -44,18 +44,21 @@ export function Header({ couponCount, onCouponOpen }: HeaderProps) {
 
   return (
     <header
-      className="sticky top-0 z-40 flex items-center px-3 py-2"
+      className="sticky top-0 z-40 flex items-center py-2"
       style={{
         backgroundColor: 'var(--brand-red)',
         borderBottom: '1px solid var(--brand-red-dark)',
+        // %10 enden daralt: her iki yanda px-8 (~10% of ~390px screen)
+        paddingLeft: '5%',
+        paddingRight: '5%',
       }}
     >
-      {/* Sol: bos alan — arama asagiya tasindi */}
+      {/* Sol: bos alan */}
       <div className="w-10 shrink-0" />
 
-      {/* Orta: Logo — %40 buyuk: text-xl(20px) → text-[28px] */}
+      {/* Orta: Logo — 28px → 32px (+15%) */}
       <div className="flex flex-1 items-center justify-center">
-        <span className="font-black tracking-tight" style={{ fontSize: '28px', lineHeight: 1 }}>
+        <span className="font-black tracking-tight" style={{ fontSize: '32px', lineHeight: 1 }}>
           <span className="text-black">LIVE</span>
           <span className="text-white">BET</span>
         </span>
@@ -68,7 +71,6 @@ export function Header({ couponCount, onCouponOpen }: HeaderProps) {
         whileTap={{ scale: 0.9 }}
       >
         <div className="relative">
-          {/* 3 cizgi ikon */}
           <div
             className="flex w-10 h-8 flex-col items-center justify-center gap-1 rounded"
             style={{ backgroundColor: 'var(--brand-red-dark)' }}
@@ -82,7 +84,6 @@ export function Header({ couponCount, onCouponOpen }: HeaderProps) {
             ))}
           </div>
 
-          {/* Badge */}
           <AnimatePresence>
             {couponCount > 0 && (
               <motion.span
@@ -92,7 +93,7 @@ export function Header({ couponCount, onCouponOpen }: HeaderProps) {
                 exit={{ scale: 0 }}
                 className="absolute -bottom-1 -right-1 flex min-w-[18px] h-[18px] items-center justify-center rounded px-0.5 font-bold"
                 style={{
-                  fontSize: '13px', // 10px → 13px (+30%)
+                  fontSize: '13px',
                   backgroundColor: 'var(--accent)',
                   color: 'var(--accent-foreground)',
                 }}
@@ -103,7 +104,6 @@ export function Header({ couponCount, onCouponOpen }: HeaderProps) {
           </AnimatePresence>
         </div>
 
-        {/* Kuponunuz yazisi — 9px → 12px (+30%) */}
         <span className="leading-none text-white/70" style={{ fontSize: '12px' }}>
           Kuponunuz
         </span>

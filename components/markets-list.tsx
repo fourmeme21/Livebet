@@ -4,6 +4,7 @@ import { Market, useBettingStore, BetSlipItem } from '@/lib/betting-store';
 import { useMemo, useState } from 'react';
 import { MarketCard } from './market-card';
 import { MatchDetailModal } from './match-detail-modal';
+import { motion } from 'framer-motion';
 
 const FOOTBALL_LEAGUES = new Set([
   'UEFA Champions League', 'Premier League', 'La Liga',
@@ -22,6 +23,17 @@ const LEAGUE_FLAGS: Record<string, string> = {
   'NBA':                   '\uD83C\uDDFA\uD83C\uDDF8',
 };
 
+const LEAGUE_COUNTRY: Record<string, string> = {
+  'UEFA Champions League': 'Avrupa',
+  'Premier League':        'Ingiltere',
+  'La Liga':               'Ispanya',
+  'Bundesliga':            'Almanya',
+  'Serie A':               'Italya',
+  'Ligue 1':               'Fransa',
+  'Turkish Super Lig':     'Turkiye',
+  'NBA':                   'Amerika',
+};
+
 function groupByLeague(markets: Market[]) {
   const map = new Map<string, Market[]>();
   for (const m of markets) {
@@ -31,20 +43,31 @@ function groupByLeague(markets: Market[]) {
   return Array.from(map.entries()).map(([league, mkts]) => ({
     league,
     flag: LEAGUE_FLAGS[league] ?? '\uD83C\uDF0D',
+    country: LEAGUE_COUNTRY[league] ?? '',
     markets: mkts,
   }));
 }
 
+type SportTab = 'futbol' | 'basketbol';
+
 interface MarketsListProps {
   markets: Market[];
   onBetSelected: (item: BetSlipItem) => void;
-  sport?: 'futbol' | 'basketbol';
+  sport?: SportTab;
 }
 
 export function MarketsList({ markets, onBetSelected, sport = 'futbol' }: MarketsListProps) {
   const { favorites, toggleFavorite } = useBettingStore();
-  const [search, setSearch] = useState('');
+  const [search, setSearch]           = useState('');
+  const [activeDay, setActiveDay]     = useState<'bugun' | 'tumu'>('bugun');
+  const [activeTime, setActiveTime]   = useState('all');
   const [selectedMarket, setSelectedMarket] = useState<Market | null>(null);
+
+  const TIME_FILTERS = [
+    { id: 'all', label: '30dk' }, { id: '1h', label: '1s' },
+    { id: '3h',  label: '3s'  }, { id: '6h', label: '6s' },
+    { id: '12h', label: '12s' }, { id: '24h', label: '24s' },
+  ];
 
   const filtered = useMemo(() => markets.filter(m => {
     if (sport === 'futbol'    && !FOOTBALL_LEAGUES.has(m.name))   return false;
@@ -64,15 +87,15 @@ export function MarketsList({ markets, onBetSelected, sport = 'futbol' }: Market
 
   return (
     <>
-      <div className="flex h-full w-full flex-col">
+      <div className="flex h-full w-full flex-col bg-background">
 
-        {/* Arama */}
-        <div className="px-3 py-2 shrink-0 border-b border-border">
+        {/* 1 — Ince arama cubugu */}
+        <div className="px-3 pt-2 pb-1 shrink-0">
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Takim veya lig ara..."
-            className="w-full rounded-lg px-3 py-2 text-sm outline-none"
+            className="w-full rounded-full px-4 py-1.5 text-xs outline-none"
             style={{
               backgroundColor: 'var(--muted)',
               color: 'var(--foreground)',
@@ -81,55 +104,100 @@ export function MarketsList({ markets, onBetSelected, sport = 'futbol' }: Market
           />
         </div>
 
-        {/* Snap scroll listesi */}
+        {/* 2 — Gun filtresi: Bugun | Tumu */}
+        <div className="flex px-3 py-1.5 gap-2 shrink-0">
+          {[
+            { id: 'bugun', label: 'Bugun' },
+            { id: 'tumu',  label: 'Tumu'  },
+          ].map(df => {
+            const active = activeDay === df.id;
+            return (
+              <motion.button
+                key={df.id}
+                onClick={() => setActiveDay(df.id as 'bugun' | 'tumu')}
+                whileTap={{ scale: 0.94 }}
+                className="rounded-xl px-5 py-1.5 text-sm font-bold transition-colors"
+                style={{
+                  backgroundColor: active ? 'var(--background)' : 'transparent',
+                  color: active ? '#cc0000' : 'var(--muted-foreground)',
+                  border: active ? '1px solid var(--border)' : '1px solid transparent',
+                  boxShadow: active ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+                }}
+              >
+                {df.label}
+              </motion.button>
+            );
+          })}
+        </div>
+
+        {/* 3 — Zaman filtresi: 30dk | 1s | 3s … */}
+        <div
+          className="flex gap-5 px-3 py-1 shrink-0 border-b border-border overflow-x-auto"
+          style={{ scrollbarWidth: 'none' }}
+        >
+          {TIME_FILTERS.map(tf => {
+            const active = activeTime === tf.id;
+            return (
+              <motion.button
+                key={tf.id}
+                onClick={() => setActiveTime(tf.id)}
+                whileTap={{ scale: 0.94 }}
+                className="shrink-0 text-sm font-semibold pb-1 transition-colors"
+                style={{ color: active ? 'var(--foreground)' : 'var(--muted-foreground)' }}
+              >
+                {tf.label}
+                {active && (
+                  <motion.div
+                    layoutId="time-underline"
+                    className="h-[2px] rounded-full mt-0.5"
+                    style={{ backgroundColor: '#cc0000' }}
+                  />
+                )}
+              </motion.button>
+            );
+          })}
+        </div>
+
+        {/* 4 — Mac listesi: scroll, 2 kart gorununur */}
         <div
           className="flex-1 w-full overflow-y-auto"
-          style={{
-            scrollSnapType: 'y mandatory',
-            WebkitOverflowScrolling: 'touch',
-            scrollbarWidth: 'none',
-          }}
+          style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}
         >
           {groups.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full gap-2">
+            <div className="flex flex-col items-center justify-center h-full gap-2 py-16">
               <span className="text-4xl">{sport === 'futbol' ? '\u26BD' : '\uD83C\uDFC0'}</span>
               <p className="text-sm text-muted-foreground">Mac bulunamadi</p>
             </div>
           ) : groups.map(group => (
             <div key={group.league}>
 
-              {/* Lig baslik */}
+              {/* Lig baslik: bayrak + ulke + lig adi */}
               <div
-                className="flex items-center gap-3 px-3 py-2 sticky top-0 z-10 border-b border-border"
+                className="flex items-center gap-2 px-3 py-2 border-b border-border"
                 style={{ backgroundColor: 'var(--background)' }}
               >
-                <span style={{ fontSize: '1.5rem', lineHeight: 1 }}>{group.flag}</span>
-                <div className="flex-1 min-w-0">
-                  <span className="text-[10px] font-bold uppercase tracking-wider block text-muted-foreground">
-                    {sport === 'futbol' ? 'Futbol' : 'Basketbol'}
-                  </span>
-                  <span className="text-sm font-bold truncate block text-foreground">
-                    {group.league}
-                  </span>
+                {/* Bayrak kutu */}
+                <div
+                  className="flex items-center justify-center rounded w-8 h-7 shrink-0"
+                  style={{ backgroundColor: 'var(--muted)', border: '1px solid var(--border)' }}
+                >
+                  <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>{group.flag}</span>
                 </div>
-                <span className="text-xs font-semibold rounded-full px-2 py-0.5 bg-muted text-muted-foreground">
-                  {group.markets.length}
-                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] font-bold text-foreground truncate">{group.country}</p>
+                  <p className="text-[10px] text-muted-foreground truncate">{group.league}</p>
+                </div>
               </div>
 
-              {/* Mac kartlari */}
-              {group.markets.map(market => (
+              {/* Mac kartlari — her ikisi gorunur, aralarinda cizgi */}
+              {group.markets.map((market, idx) => (
                 <div
                   key={market.id}
+                  className="px-2 py-2"
                   style={{
-                    scrollSnapAlign: 'start',
-                    scrollSnapStop: 'always',
-                    minHeight: '52vh',
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    width: '100%',
-                    padding: '6px',
-                    boxSizing: 'border-box',
+                    borderBottom: idx < group.markets.length - 1
+                      ? '1px solid var(--border)'
+                      : undefined,
                   }}
                 >
                   <MarketCard
@@ -145,6 +213,9 @@ export function MarketsList({ markets, onBetSelected, sport = 'futbol' }: Market
               ))}
             </div>
           ))}
+
+          {/* Alt bosluk — alt bar uzerine binmesin */}
+          <div className="h-4" />
         </div>
       </div>
 

@@ -83,14 +83,14 @@ export default function DashboardPage() {
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
-              className="flex flex-1 w-full overflow-hidden"
+              className="flex flex-1 w-full min-h-0"
               initial={{ opacity: 0, x: 12 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -12 }}
               transition={{ duration: 0.15 }}
             >
               {(activeTab === 'futbol' || activeTab === 'basketbol') && (
-                <div className="flex flex-1 w-full overflow-hidden">
+                <div className="flex flex-1 w-full min-h-0">
                   <MarketsList
                     markets={displayedMarkets}
                     onBetSelected={handleBetSelected}

@@ -37,12 +37,9 @@ const LEAGUE_COUNTRY: Record<string, string> = {
 };
 
 const TIME_FILTERS = [
-  { id: '30m', label: '30dk' },
-  { id: '1h',  label: '1s'   },
-  { id: '3h',  label: '3s'   },
-  { id: '6h',  label: '6s'   },
-  { id: '12h', label: '12s'  },
-  { id: '24h', label: '24s'  },
+  { id: '30m', label: '30dk' }, { id: '1h',  label: '1s'  },
+  { id: '3h',  label: '3s'  }, { id: '6h',  label: '6s'  },
+  { id: '12h', label: '12s' }, { id: '24h', label: '24s' },
 ];
 
 function groupByLeague(markets: Market[]) {
@@ -90,9 +87,15 @@ export function MarketsList({ markets, onBetSelected, sport = 'futbol' }: Market
 
   return (
     <>
-      <div className="flex h-full w-full flex-col bg-background">
+      {/*
+        SCROLL DUZELTME:
+        Bu component h-full w-full flex flex-col olarak geliyor.
+        Ust kisimlar shrink-0, liste alani flex-1 overflow-y-auto.
+        Parent'in overflow-hidden olmasi gerekiyor — dashboard bunu sagliyor.
+      */}
+      <div className="flex h-full w-full flex-col min-h-0 bg-background">
 
-        {/* 1 — Ince arama — sag tarafta ara ikonu */}
+        {/* 1 — Ince arama — saga ara ikonu */}
         <div className="px-3 pt-2 pb-1 shrink-0">
           <div className="relative flex items-center">
             <input
@@ -113,7 +116,7 @@ export function MarketsList({ markets, onBetSelected, sport = 'futbol' }: Market
           </div>
         </div>
 
-        {/* 2 — Gun filtresi */}
+        {/* 2 — Gun filtresi — 14px → 17px (+20%) */}
         <div className="flex px-3 py-1.5 gap-2 shrink-0">
           {[
             { id: 'bugun', label: 'Bugun' },
@@ -125,8 +128,9 @@ export function MarketsList({ markets, onBetSelected, sport = 'futbol' }: Market
                 key={df.id}
                 onClick={() => setActiveDay(df.id as 'bugun' | 'tumu')}
                 whileTap={{ scale: 0.94 }}
-                className="rounded-xl px-5 py-1.5 text-[14px] font-bold transition-colors"
+                className="rounded-xl px-5 py-1.5 font-bold transition-colors"
                 style={{
+                  fontSize: '17px',
                   backgroundColor: active ? 'var(--background)' : 'transparent',
                   color: active ? RED : 'var(--muted-foreground)',
                   border: active ? '1px solid var(--border)' : '1px solid transparent',
@@ -139,10 +143,8 @@ export function MarketsList({ markets, onBetSelected, sport = 'futbol' }: Market
           })}
         </div>
 
-        {/* 3 — Zaman filtresi — ekran enine boydan boya yayil */}
-        <div
-          className="flex px-3 py-1 shrink-0 border-b border-border justify-between"
-        >
+        {/* 3 — Zaman filtresi — ekran enine yayil */}
+        <div className="flex px-3 py-1 shrink-0 border-b border-border justify-between">
           {TIME_FILTERS.map(tf => {
             const active = activeTime === tf.id;
             return (
@@ -150,8 +152,11 @@ export function MarketsList({ markets, onBetSelected, sport = 'futbol' }: Market
                 key={tf.id}
                 onClick={() => setActiveTime(tf.id)}
                 whileTap={{ scale: 0.94 }}
-                className="flex-1 text-center text-[14px] font-bold pb-1 transition-colors"
-                style={{ color: active ? 'var(--foreground)' : 'var(--muted-foreground)' }}
+                className="flex-1 text-center font-bold pb-1 transition-colors"
+                style={{
+                  fontSize: '14px',
+                  color: active ? 'var(--foreground)' : 'var(--muted-foreground)',
+                }}
               >
                 {tf.label}
                 {active && (
@@ -166,13 +171,13 @@ export function MarketsList({ markets, onBetSelected, sport = 'futbol' }: Market
           })}
         </div>
 
-        {/* 4 — Mac listesi */}
+        {/* 4 — MAC LISTESI — flex-1 + overflow-y-auto = scroll calışır */}
         <div
-          className="flex-1 w-full overflow-y-auto"
-          style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}
+          className="flex-1 min-h-0 w-full overflow-y-auto"
+          style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}
         >
           {groups.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full gap-2 py-16">
+            <div className="flex flex-col items-center justify-center py-20 gap-2">
               <span className="text-4xl">{sport === 'futbol' ? '\u26BD' : '\uD83C\uDFC0'}</span>
               <p className="text-sm text-muted-foreground">Mac bulunamadi</p>
             </div>
@@ -185,15 +190,13 @@ export function MarketsList({ markets, onBetSelected, sport = 'futbol' }: Market
                 style={{ backgroundColor: 'var(--background)' }}
               >
                 <div
-                  className="flex items-center justify-center rounded w-9 h-7 shrink-0"
+                  className="flex items-center justify-center rounded w-9 h-7 shrink-0 overflow-hidden"
                   style={{ backgroundColor: 'var(--muted)', border: '1px solid var(--border)' }}
                 >
                   <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>{group.flag}</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  {/* 11px → 13px */}
                   <p className="text-[13px] font-bold text-foreground truncate">{group.country}</p>
-                  {/* 10px → 12px */}
                   <p className="text-[12px] text-muted-foreground truncate">{group.league}</p>
                 </div>
               </div>
@@ -222,7 +225,8 @@ export function MarketsList({ markets, onBetSelected, sport = 'futbol' }: Market
               ))}
             </div>
           ))}
-          <div className="h-4" />
+
+          <div className="h-6" />
         </div>
       </div>
 

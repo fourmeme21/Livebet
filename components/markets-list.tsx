@@ -92,19 +92,25 @@ export function MarketsList({ markets, onBetSelected, sport = 'futbol' }: Market
     <>
       <div className="flex h-full w-full flex-col bg-background">
 
-        {/* 1 — Ince arama */}
+        {/* 1 — Ince arama — sag tarafta ara ikonu */}
         <div className="px-3 pt-2 pb-1 shrink-0">
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Takim veya lig ara..."
-            className="w-full rounded-full px-4 py-1.5 text-[13px] outline-none"
-            style={{
-              backgroundColor: 'var(--muted)',
-              color: 'var(--foreground)',
-              border: '1px solid var(--border)',
-            }}
-          />
+          <div className="relative flex items-center">
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Takim veya lig ara..."
+              className="w-full rounded-full pl-4 pr-10 py-1.5 text-[13px] outline-none"
+              style={{
+                backgroundColor: 'var(--muted)',
+                color: 'var(--foreground)',
+                border: '1px solid var(--border)',
+              }}
+            />
+            <span className="absolute right-3 text-muted-foreground pointer-events-none"
+              style={{ fontSize: '15px' }}>
+              🔍
+            </span>
+          </div>
         </div>
 
         {/* 2 — Gun filtresi */}

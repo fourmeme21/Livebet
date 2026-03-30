@@ -120,6 +120,8 @@
   * {
     border-color: var(--border);
     outline-color: color-mix(in oklch, var(--ring) 50%, transparent);
+    /* PWA: dokunusta mavi highlight kaldirildi */
+    -webkit-tap-highlight-color: transparent;
   }
 
   body {
@@ -127,6 +129,12 @@
     color: var(--foreground);
     font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-font-smoothing: antialiased;
+    /* PWA: sayfa dis scroll ve bounce efekti engellendi */
+    overscroll-behavior: none;
+    /* PWA: iOS geri/ileri swipe engellendi */
+    overscroll-behavior-x: none;
+    /* PWA: dokunma gecikmesi kaldirildi */
+    touch-action: manipulation;
     background-image:
       radial-gradient(
         ellipse 80% 50% at 50% -10%,

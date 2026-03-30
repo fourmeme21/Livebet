@@ -6,6 +6,8 @@ import { MarketCard } from './market-card';
 import { MatchDetailModal } from './match-detail-modal';
 import { motion } from 'framer-motion';
 
+const RED = '#E30A17';
+
 const FOOTBALL_LEAGUES = new Set([
   'UEFA Champions League', 'Premier League', 'La Liga',
   'Bundesliga', 'Serie A', 'Ligue 1', 'Turkish Super Lig',
@@ -34,6 +36,15 @@ const LEAGUE_COUNTRY: Record<string, string> = {
   'NBA':                   'Amerika',
 };
 
+const TIME_FILTERS = [
+  { id: '30m', label: '30dk' },
+  { id: '1h',  label: '1s'   },
+  { id: '3h',  label: '3s'   },
+  { id: '6h',  label: '6s'   },
+  { id: '12h', label: '12s'  },
+  { id: '24h', label: '24s'  },
+];
+
 function groupByLeague(markets: Market[]) {
   const map = new Map<string, Market[]>();
   for (const m of markets) {
@@ -48,26 +59,18 @@ function groupByLeague(markets: Market[]) {
   }));
 }
 
-type SportTab = 'futbol' | 'basketbol';
-
 interface MarketsListProps {
   markets: Market[];
   onBetSelected: (item: BetSlipItem) => void;
-  sport?: SportTab;
+  sport?: 'futbol' | 'basketbol';
 }
 
 export function MarketsList({ markets, onBetSelected, sport = 'futbol' }: MarketsListProps) {
   const { favorites, toggleFavorite } = useBettingStore();
   const [search, setSearch]           = useState('');
   const [activeDay, setActiveDay]     = useState<'bugun' | 'tumu'>('bugun');
-  const [activeTime, setActiveTime]   = useState('all');
+  const [activeTime, setActiveTime]   = useState('30m');
   const [selectedMarket, setSelectedMarket] = useState<Market | null>(null);
-
-  const TIME_FILTERS = [
-    { id: 'all', label: '30dk' }, { id: '1h', label: '1s' },
-    { id: '3h',  label: '3s'  }, { id: '6h', label: '6s' },
-    { id: '12h', label: '12s' }, { id: '24h', label: '24s' },
-  ];
 
   const filtered = useMemo(() => markets.filter(m => {
     if (sport === 'futbol'    && !FOOTBALL_LEAGUES.has(m.name))   return false;
@@ -89,13 +92,13 @@ export function MarketsList({ markets, onBetSelected, sport = 'futbol' }: Market
     <>
       <div className="flex h-full w-full flex-col bg-background">
 
-        {/* 1 — Ince arama cubugu */}
+        {/* 1 — Ince arama */}
         <div className="px-3 pt-2 pb-1 shrink-0">
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Takim veya lig ara..."
-            className="w-full rounded-full px-4 py-1.5 text-xs outline-none"
+            className="w-full rounded-full px-4 py-1.5 text-[13px] outline-none"
             style={{
               backgroundColor: 'var(--muted)',
               color: 'var(--foreground)',
@@ -104,7 +107,7 @@ export function MarketsList({ markets, onBetSelected, sport = 'futbol' }: Market
           />
         </div>
 
-        {/* 2 — Gun filtresi: Bugun | Tumu */}
+        {/* 2 — Gun filtresi */}
         <div className="flex px-3 py-1.5 gap-2 shrink-0">
           {[
             { id: 'bugun', label: 'Bugun' },
@@ -116,10 +119,10 @@ export function MarketsList({ markets, onBetSelected, sport = 'futbol' }: Market
                 key={df.id}
                 onClick={() => setActiveDay(df.id as 'bugun' | 'tumu')}
                 whileTap={{ scale: 0.94 }}
-                className="rounded-xl px-5 py-1.5 text-sm font-bold transition-colors"
+                className="rounded-xl px-5 py-1.5 text-[14px] font-bold transition-colors"
                 style={{
                   backgroundColor: active ? 'var(--background)' : 'transparent',
-                  color: active ? '#cc0000' : 'var(--muted-foreground)',
+                  color: active ? RED : 'var(--muted-foreground)',
                   border: active ? '1px solid var(--border)' : '1px solid transparent',
                   boxShadow: active ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
                 }}
@@ -130,10 +133,9 @@ export function MarketsList({ markets, onBetSelected, sport = 'futbol' }: Market
           })}
         </div>
 
-        {/* 3 — Zaman filtresi: 30dk | 1s | 3s … */}
+        {/* 3 — Zaman filtresi — ekran enine boydan boya yayil */}
         <div
-          className="flex gap-5 px-3 py-1 shrink-0 border-b border-border overflow-x-auto"
-          style={{ scrollbarWidth: 'none' }}
+          className="flex px-3 py-1 shrink-0 border-b border-border justify-between"
         >
           {TIME_FILTERS.map(tf => {
             const active = activeTime === tf.id;
@@ -142,15 +144,15 @@ export function MarketsList({ markets, onBetSelected, sport = 'futbol' }: Market
                 key={tf.id}
                 onClick={() => setActiveTime(tf.id)}
                 whileTap={{ scale: 0.94 }}
-                className="shrink-0 text-sm font-semibold pb-1 transition-colors"
+                className="flex-1 text-center text-[14px] font-bold pb-1 transition-colors"
                 style={{ color: active ? 'var(--foreground)' : 'var(--muted-foreground)' }}
               >
                 {tf.label}
                 {active && (
                   <motion.div
                     layoutId="time-underline"
-                    className="h-[2px] rounded-full mt-0.5"
-                    style={{ backgroundColor: '#cc0000' }}
+                    className="h-[2px] rounded-full mt-0.5 mx-auto"
+                    style={{ backgroundColor: RED, width: '80%' }}
                   />
                 )}
               </motion.button>
@@ -158,7 +160,7 @@ export function MarketsList({ markets, onBetSelected, sport = 'futbol' }: Market
           })}
         </div>
 
-        {/* 4 — Mac listesi: scroll, 2 kart gorununur */}
+        {/* 4 — Mac listesi */}
         <div
           className="flex-1 w-full overflow-y-auto"
           style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}
@@ -171,25 +173,26 @@ export function MarketsList({ markets, onBetSelected, sport = 'futbol' }: Market
           ) : groups.map(group => (
             <div key={group.league}>
 
-              {/* Lig baslik: bayrak + ulke + lig adi */}
+              {/* Lig baslik */}
               <div
                 className="flex items-center gap-2 px-3 py-2 border-b border-border"
                 style={{ backgroundColor: 'var(--background)' }}
               >
-                {/* Bayrak kutu */}
                 <div
-                  className="flex items-center justify-center rounded w-8 h-7 shrink-0"
+                  className="flex items-center justify-center rounded w-9 h-7 shrink-0"
                   style={{ backgroundColor: 'var(--muted)', border: '1px solid var(--border)' }}
                 >
-                  <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>{group.flag}</span>
+                  <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>{group.flag}</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-bold text-foreground truncate">{group.country}</p>
-                  <p className="text-[10px] text-muted-foreground truncate">{group.league}</p>
+                  {/* 11px → 13px */}
+                  <p className="text-[13px] font-bold text-foreground truncate">{group.country}</p>
+                  {/* 10px → 12px */}
+                  <p className="text-[12px] text-muted-foreground truncate">{group.league}</p>
                 </div>
               </div>
 
-              {/* Mac kartlari — her ikisi gorunur, aralarinda cizgi */}
+              {/* Mac kartlari */}
               {group.markets.map((market, idx) => (
                 <div
                   key={market.id}
@@ -213,13 +216,10 @@ export function MarketsList({ markets, onBetSelected, sport = 'futbol' }: Market
               ))}
             </div>
           ))}
-
-          {/* Alt bosluk — alt bar uzerine binmesin */}
           <div className="h-4" />
         </div>
       </div>
 
-      {/* Detay modal */}
       <MatchDetailModal
         market={selectedMarket}
         isOpen={!!selectedMarket}

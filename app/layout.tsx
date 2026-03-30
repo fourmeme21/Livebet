@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
+import { InstallPrompt } from '@/components/install-prompt'
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-sans' })
 const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-mono' })
@@ -40,6 +41,7 @@ export default function RootLayout({
         className={`${geist.variable} ${geistMono.variable} font-sans antialiased bg-background text-foreground`}
       >
         {children}
+        <InstallPrompt />
       </body>
     </html>
   )

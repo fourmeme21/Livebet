@@ -6,10 +6,17 @@ const geist = Geist({ subsets: ['latin'], variable: '--font-sans' })
 const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-mono' })
 
 export const metadata: Metadata = {
-  title: 'Livebet - Live Betting Dashboard',
-  description: 'Ultra-low latency live betting dashboard with real-time odds and smart betting',
+  title: 'LiveBet',
+  description: 'Canli Spor Bahisleri',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'LiveBet',
+  },
   icons: {
     icon: '/favicon.ico',
+    apple: '/icon-192.png',
   },
 }
 
@@ -18,7 +25,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#0a0a0a',
+  themeColor: '#E30A17',
+  viewportFit: 'cover',
 }
 
 export default function RootLayout({
@@ -27,7 +35,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="tr" className="dark">
       <body
         className={`${geist.variable} ${geistMono.variable} font-sans antialiased bg-background text-foreground`}
       >

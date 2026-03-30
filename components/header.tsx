@@ -2,7 +2,6 @@
 
 import { useBettingStore } from '@/lib/betting-store';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 function AnimatedBalance({ value }: { value: number }) {
@@ -20,7 +19,7 @@ function AnimatedBalance({ value }: { value: number }) {
   }, [value]);
 
   const color =
-    flash === 'up' ? 'var(--odds-positive)' :
+    flash === 'up'   ? 'var(--odds-positive)' :
     flash === 'down' ? 'var(--odds-negative)' :
     'var(--accent)';
 
@@ -30,7 +29,7 @@ function AnimatedBalance({ value }: { value: number }) {
       animate={{ color }}
       transition={{ duration: 0.3 }}
     >
-      {display.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+      {display.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TL
     </motion.span>
   );
 }
@@ -45,40 +44,31 @@ export function Header({ couponCount, onCouponOpen }: HeaderProps) {
 
   return (
     <header
-      className="sticky top-0 z-40 flex items-center gap-2 px-3 py-2"
+      className="sticky top-0 z-40 flex items-center px-3 py-2"
       style={{
         backgroundColor: 'var(--brand-red)',
         borderBottom: '1px solid var(--brand-red-dark)',
       }}
     >
-      {/* ─── Sol: Arama butonu ─── */}
-      <button
-        className="flex items-center gap-2 rounded px-3 py-2 text-sm shrink-0"
-        style={{
-          backgroundColor: 'var(--brand-red-dark)',
-          color: 'oklch(0.85 0 0)',
-          minWidth: '80px',
-        }}
-      >
-        <Search className="w-4 h-4 shrink-0" />
-        <span className="font-medium">Ara</span>
-      </button>
+      {/* Sol: bos alan — arama asagiya tasindi */}
+      <div className="w-10 shrink-0" />
 
-      {/* ─── Orta: Logo ─── */}
+      {/* Orta: Logo — %40 buyuk: text-xl(20px) → text-[28px] */}
       <div className="flex flex-1 items-center justify-center">
-        <span className="text-xl font-black tracking-tight text-white">
-          LIVE<span style={{ color: 'var(--accent)' }}>BET</span>
+        <span className="font-black tracking-tight" style={{ fontSize: '28px', lineHeight: 1 }}>
+          <span className="text-black">LIVE</span>
+          <span className="text-white">BET</span>
         </span>
       </div>
 
-      {/* ─── Sağ: Kupon sayacı — NORMA stili ─── */}
+      {/* Sag: Kupon sayaci */}
       <motion.button
         onClick={onCouponOpen}
         className="flex shrink-0 flex-col items-center gap-0.5"
         whileTap={{ scale: 0.9 }}
       >
         <div className="relative">
-          {/* 3 çizgi ikon */}
+          {/* 3 cizgi ikon */}
           <div
             className="flex w-10 h-8 flex-col items-center justify-center gap-1 rounded"
             style={{ backgroundColor: 'var(--brand-red-dark)' }}
@@ -100,8 +90,9 @@ export function Header({ couponCount, onCouponOpen }: HeaderProps) {
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 exit={{ scale: 0 }}
-                className="absolute -bottom-1 -right-1 flex min-w-[18px] h-[18px] items-center justify-center rounded px-0.5 text-[10px] font-bold"
+                className="absolute -bottom-1 -right-1 flex min-w-[18px] h-[18px] items-center justify-center rounded px-0.5 font-bold"
                 style={{
+                  fontSize: '13px', // 10px → 13px (+30%)
                   backgroundColor: 'var(--accent)',
                   color: 'var(--accent-foreground)',
                 }}
@@ -112,11 +103,11 @@ export function Header({ couponCount, onCouponOpen }: HeaderProps) {
           </AnimatePresence>
         </div>
 
-        <span className="text-[9px] leading-none text-white/70">
+        {/* Kuponunuz yazisi — 9px → 12px (+30%) */}
+        <span className="leading-none text-white/70" style={{ fontSize: '12px' }}>
           Kuponunuz
         </span>
       </motion.button>
     </header>
   );
-      }
-          
+}
